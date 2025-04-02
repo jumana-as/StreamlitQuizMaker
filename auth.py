@@ -16,10 +16,10 @@ def get_auth_url():
     )
     
     return msal_app.get_authorization_request_url(
-        scopes=["User.Read", "email", "openid", "profile"],  # Added required scopes
+        scopes=["User.Read"],  # Remove reserved scopes, keep only Microsoft Graph scope
         redirect_uri=st.secrets["MICROSOFT_REDIRECT_URI"],
-        response_type="code",  # Explicitly request authorization code flow
-        prompt="select_account"  # Force account selection
+        response_type="code",
+        prompt="select_account"
     )
 
 def handle_auth_callback():
@@ -34,7 +34,7 @@ def handle_auth_callback():
         try:
             token_response = msal_app.acquire_token_by_authorization_code(
                 code,
-                scopes=["User.Read", "email", "openid", "profile"],  # Match requested scopes
+                scopes=["User.Read"],  # Match requested scopes
                 redirect_uri=st.secrets["MICROSOFT_REDIRECT_URI"]
             )
             
