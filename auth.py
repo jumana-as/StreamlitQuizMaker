@@ -16,8 +16,10 @@ def get_auth_url():
     )
     
     return msal_app.get_authorization_request_url(
-        scopes=["User.Read"],
-        redirect_uri=st.secrets["MICROSOFT_REDIRECT_URI"]
+        scopes=["User.Read", "email", "openid", "profile"],  # Added required scopes
+        redirect_uri=st.secrets["MICROSOFT_REDIRECT_URI"],
+        response_type="code",  # Explicitly request authorization code flow
+        prompt="select_account"  # Force account selection
     )
 
 def handle_auth_callback():
@@ -29,19 +31,24 @@ def handle_auth_callback():
             authority=f"https://login.microsoftonline.com/{st.secrets['MICROSOFT_TENANT_ID']}"
         )
         
-        token_response = msal_app.acquire_token_by_authorization_code(
-            code,
-            scopes=["User.Read"],
-            redirect_uri=st.secrets["MICROSOFT_REDIRECT_URI"]
-        )
-        
-        if "access_token" in token_response:
-            st.session_state.access_token = token_response["access_token"]
-            user_info = requests.get(
-                "https://graph.microsoft.com/v1.0/me",
-                headers={"Authorization": f"Bearer {st.session_state.access_token}"}
-            ).json()
-            st.session_state.user_email = user_info.get("mail")
+        try:
+            token_response = msal_app.acquire_token_by_authorization_code(
+                code,
+                scopes=["User.Read", "email", "openid", "profile"],  # Match requested scopes
+                redirect_uri=st.secrets["MICROSOFT_REDIRECT_URI"]
+            )
+            
+            if "access_token" in token_response:
+                st.session_state.access_token = token_response["access_token"]
+                user_info = requests.get(
+                    "https://graph.microsoft.com/v1.0/me",
+                    headers={"Authorization": f"Bearer {st.session_state.access_token}"}
+                ).json()
+                st.session_state.user_email = user_info.get("mail") or user_info.get("userPrincipalName")
+            else:
+                st.error(f"Token error: {token_response.get('error_description', 'Unknown error')}")
+        except Exception as e:
+            st.error(f"Authentication error: {str(e)}")
 
 def is_authorized():
     return (st.session_state.user_email and 
