@@ -3,7 +3,7 @@ import json
 import time
 import math
 from datetime import datetime, timedelta
-from auth import init_auth, get_auth_url, handle_auth_callback, is_authorized
+from auth import init_auth, authenticate, is_authorized
 from database import save_exam, get_exam_list, get_exam, save_user_progress, get_user_exam_attempts
 
 st.set_page_config(page_title="Quiz Maker", layout="wide")
@@ -19,11 +19,10 @@ def init_session_state():
 def main():
     init_auth()
     init_session_state()
-    handle_auth_callback()
 
-    if not st.session_state.access_token:
-        st.markdown("Please login with Microsoft Account")
-        st.markdown(f"[Login]({get_auth_url()})")
+    user = authenticate()
+    if not user:
+        st.error("Please login with Microsoft Account")
         return
 
     if not is_authorized():
