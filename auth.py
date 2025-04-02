@@ -21,8 +21,8 @@ def get_auth_url():
     )
 
 def handle_auth_callback():
-    if "code" in st.experimental_get_query_params():
-        code = st.experimental_get_query_params()["code"][0]
+    if "code" in st.query_params:
+        code = st.query_params["code"]
         msal_app = ConfidentialClientApplication(
             st.secrets["MICROSOFT_CLIENT_ID"],
             client_credential=st.secrets["MICROSOFT_CLIENT_SECRET"],
