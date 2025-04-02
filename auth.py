@@ -15,9 +15,10 @@ def authenticate():
         "client_type": "confidential"
     }
     
-    user = st.experimental_login(
-        "Microsoft Login",
-        provider="azure",
+    user = st.login_button(
+        "Login with Microsoft",
+        key="microsoft_login",
+        type="azure",
         oauth=oauth
     )
     if user:
