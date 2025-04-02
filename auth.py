@@ -5,24 +5,15 @@ def init_auth():
         st.session_state.user_email = None
 
 def authenticate():
-    # Configure OAuth provider
-    oauth = {
-        "client_id": st.secrets["MICROSOFT_CLIENT_ID"],
-        "client_secret": st.secrets["MICROSOFT_CLIENT_SECRET"],
-        "authorize_url": f"https://login.microsoftonline.com/{st.secrets['MICROSOFT_TENANT_ID']}/oauth2/v2.0/authorize",
-        "token_url": f"https://login.microsoftonline.com/{st.secrets['MICROSOFT_TENANT_ID']}/oauth2/v2.0/token",
-        "redirect_uri": st.secrets["MICROSOFT_REDIRECT_URI"],
-        "client_type": "confidential"
-    }
-    
-    user = st.login_button(
-        "Login with Microsoft",
-        key="microsoft_login",
-        type="azure",
-        oauth=oauth
-    )
-    if user:
+    user = None
+    if not st.experimental_user.is_logged_in:
+        if st.button("Login with Microsoft"):
+            st.login("microsoft")
+    else:
+        user = st.experimental_user
         st.session_state.user_email = user.email
+        if st.sidebar.button("Log out"):
+            st.logout()
     return user
 
 def is_authorized():
