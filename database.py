@@ -46,6 +46,16 @@ def save_exam(exam_data: List[Dict], session_time: int, total_questions: int,
     get_exam_list.clear()
     get_exam.clear()
 
+def update_exam_questions(exam_name: str, provider: str, questions: List[Dict]):
+    db = get_database()
+    result = db.exams.update_one(
+        {"exam": exam_name, "provider": provider},
+        {"$set": {"questions": questions}}
+    )
+    # Clear cache to reflect changes
+    get_exam.clear()
+    return result.modified_count > 0
+
 @st.cache_data(ttl=600)
 def get_exam_list():
     db = get_database()

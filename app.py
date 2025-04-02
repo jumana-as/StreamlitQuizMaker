@@ -4,7 +4,7 @@ import time
 import math
 from datetime import datetime, timedelta
 from auth import init_auth, authenticate, is_authorized
-from database import save_exam, get_exam_list, get_exam, save_user_progress, get_user_exam_attempts
+from database import save_exam, get_exam_list, get_exam, save_user_progress, get_user_exam_attempts, update_exam_questions
 
 st.set_page_config(page_title="Quiz Maker", layout="wide")
 
@@ -31,10 +31,12 @@ def main():
 
     st.title("Quiz Maker")
     
-    mode = st.sidebar.radio("Mode", ["Practice Exam", "Create Exam"])
+    mode = st.sidebar.radio("Mode", ["Practice Exam", "Create Exam", "Edit Exam"])
     
     if mode == "Create Exam":
         create_exam()
+    elif mode == "Edit Exam":
+        edit_exam()
     else:
         practice_exam()
 
@@ -216,6 +218,61 @@ def show_results():
             "batch_range": st.session_state.batch_info["range"]
         }
     )
+
+def edit_exam():
+    st.header("Edit Exam")
+    
+    exams = get_exam_list()
+    if not exams:
+        st.warning("No exams available")
+        return
+        
+    selected_exam = st.selectbox(
+        "Select Exam to Edit",
+        options=[(e["exam"], e["provider"]) for e in exams],
+        format_func=lambda x: f"{x[0]} - {x[1]}"
+    )
+
+    if selected_exam:
+        exam = get_exam(selected_exam[0], selected_exam[1])
+        questions = exam["questions"]
+        modified = False
+
+        st.info(f"Editing {len(questions)} questions")
+        
+        for i, question in enumerate(questions):
+            with st.expander(f"Question {question['questionNumber']}: {question['questionText'][:100]}..."):
+                # Display question options
+                st.write("Options:")
+                for opt in question["options"]:
+                    st.write(f"- {opt['optionText']}")
+                
+                # Edit verified answer
+                current_verified = question["verifiedAnswer"]
+                new_verified = st.text_input(
+                    "Verified Answer", 
+                    value=current_verified,
+                    key=f"verified_{i}"
+                )
+                if new_verified != current_verified:
+                    question["verifiedAnswer"] = new_verified
+                    modified = True
+                
+                # Toggle isMarked
+                is_marked = st.checkbox(
+                    "Mark Question for Review",
+                    value=question.get("isMarked", False),
+                    key=f"mark_{i}"
+                )
+                if is_marked != question.get("isMarked", False):
+                    question["isMarked"] = is_marked
+                    modified = True
+
+        if modified and st.button("Save Changes"):
+            if update_exam_questions(selected_exam[0], selected_exam[1], questions):
+                st.success("Changes saved successfully!")
+            else:
+                st.error("Failed to save changes")
 
 if __name__ == "__main__":
     main()
