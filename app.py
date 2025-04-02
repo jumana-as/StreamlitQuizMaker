@@ -168,13 +168,13 @@ def show_quiz():
         if st.session_state.current_question > 0:
             if st.button("Previous"):
                 st.session_state.current_question -= 1
-                st.experimental_rerun()
+                st.rerun()
                 
     with cols[1]:
         if st.session_state.current_question < len(st.session_state.exam_data) - 1:
             if st.button("Next"):
                 st.session_state.current_question += 1
-                st.experimental_rerun()
+                st.rerun()
         else:
             if st.button("Submit"):
                 show_results()
