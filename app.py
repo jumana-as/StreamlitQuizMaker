@@ -295,7 +295,7 @@ def edit_exam():
 
         # Add side navigation
         with question_nav:
-            st.sidebar.markdown("### Questions")
+            st.sidebar.markdown("### ")
             st.sidebar.markdown(
                 """
                 <style>
@@ -348,7 +348,7 @@ def edit_exam():
         question = questions[st.session_state.editing_question]
         st.markdown(f'<div id="{st.session_state.editing_question}"></div>', unsafe_allow_html=True)
         with st.container():
-            st.markdown(f"### Question {question['questionNumber']}")
+            st.markdown(f"### {question['questionNumber']}")
             st.write(question['questionText'])
             
             # Display question options
