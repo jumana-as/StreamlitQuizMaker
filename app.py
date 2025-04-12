@@ -154,7 +154,7 @@ def show_quiz():
     # Show options
     selected_option = st.radio(
         "Select your answer:",
-        options=[opt["optionText"] for opt in question["options"]],
+        options=[f"{opt['optionLetter']}. {opt['optionText']}" for opt in question["options"]],
         key=f"q_{question['questionNumber']}"
     )
     
@@ -186,7 +186,10 @@ def show_quiz():
     with st.expander("Show Details"):
         st.write("Comments:")
         for comment in question["comments"]:
-            st.write(f"{comment['commentHead']}: {comment['commentContent']}")
+            head = comment['commentHead'].replace('\n', ' ').replace('\t', ' ').strip()
+            content = comment['commentContent'].replace('\n', ' ').replace('\t', ' ').strip()
+            selected = f" [{comment.get('commentSelectedAnswer', '')}]" if comment.get('commentSelectedAnswer') else ""
+            st.write(f"{head}{selected}: {content}")
         st.write(f"Suggested Answer: {question['suggestedAnswer']}")
         st.write("Vote Distribution:", question["voteDistribution"])
         st.write(f"Verified Answer: {question['verifiedAnswer']}")
