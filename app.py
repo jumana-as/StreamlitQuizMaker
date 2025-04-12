@@ -249,7 +249,7 @@ def edit_exam():
         st.button("🔄 Refresh Cache", on_click=get_exam.clear)
         
         # Add metadata editing section
-        with st.expander("Edit Exam Settings", expanded=True):
+        with st.expander("Edit Exam Settings", expanded=False):
             st.subheader("Metadata")
             meta = exam["metadata"]
             
@@ -355,7 +355,8 @@ def edit_exam():
             with cols[1]:
                 is_marked = st.checkbox(
                     "Mark for Review",
-                    value=question.get("isMarked", False)
+                    value=question.get("isMarked", False),
+                    key=f"edit_mark_{question['questionNumber']}"  # Add unique key using question number
                 )
             
             with cols[2]:
