@@ -22,8 +22,7 @@ def is_authorized():
             st.session_state.user_email == st.secrets["ALLOWED_EMAIL"])
 
 def get_initials(name: str) -> str:
-    parts = name.split() if name else []
-    return ''.join(word[0].upper() for word in parts) if parts else '?'
+    return name[0].upper() if name else '?'
 
 def show_user_info():
     if st.experimental_user.is_logged_in:

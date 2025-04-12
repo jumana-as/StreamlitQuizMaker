@@ -96,8 +96,10 @@ def practice_exam():
             start_idx = batch_idx * questions_per_session
             end_idx = min((batch_idx + 1) * questions_per_session, total_questions)
             
-            # Store selected questions and batch info for this attempt
-            st.session_state.exam_data = exam["questions"][start_idx:end_idx]
+            # Sort and store selected questions for this attempt
+            questions = sorted(exam["questions"][start_idx:end_idx], 
+                            key=lambda q: q['questionNumber'])
+            st.session_state.exam_data = questions
             st.session_state.exam_metadata = exam["metadata"]
             st.session_state.batch_info = {
                 "number": batch_idx + 1,
@@ -234,7 +236,8 @@ def edit_exam():
 
     if selected_exam:
         exam = get_exam(selected_exam[0], selected_exam[1])
-        questions = exam["questions"]
+        # Sort questions by question number
+        questions = sorted(exam["questions"], key=lambda q: q['questionNumber'])
         modified = False
 
         st.info(f"Editing {len(questions)} questions")
