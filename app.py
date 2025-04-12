@@ -335,12 +335,10 @@ def edit_exam():
                 icon_str = " ".join(icons)
                 current_class = " current" if i == st.session_state.editing_question else ""
                 
-                if st.sidebar.markdown(
+                st.sidebar.markdown(
                     f"""<div class="question-link{current_class}" onclick="location.href='#{i}'">Q{q['questionNumber']} {icon_str}</div>""", 
                     unsafe_allow_html=True
-                ).clicked:
-                    st.session_state.editing_question = i
-                    st.rerun()
+                )
             
             st.sidebar.markdown("</div>", unsafe_allow_html=True)
 
