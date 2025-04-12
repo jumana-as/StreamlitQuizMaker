@@ -48,9 +48,20 @@ def save_exam(exam_data: List[Dict], session_time: int, total_questions: int,
 
 def update_exam_questions(exam_name: str, provider: str, questions: List[Dict]):
     db = get_database()
+    # Get current exam data first
+    exam = db.exams.find_one({"exam": exam_name, "provider": provider})
+    if not exam:
+        return False
+    
+    # Update questions while preserving metadata
     result = db.exams.update_one(
         {"exam": exam_name, "provider": provider},
-        {"$set": {"questions": questions}}
+        {
+            "$set": {
+                "questions": questions,
+                "metadata": exam["metadata"]  # Preserve existing metadata
+            }
+        }
     )
     # Clear cache to reflect changes
     get_exam.clear()
