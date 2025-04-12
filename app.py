@@ -4,7 +4,7 @@ import time
 import math
 from datetime import datetime, timedelta
 from auth import init_auth, authenticate, is_authorized
-from database import save_exam, get_exam_list, get_exam, save_user_progress, get_user_exam_attempts, update_exam_questions
+from database import save_exam, get_exam_list, get_exam, save_user_progress, get_user_exam_attempts, update_exam_questions, update_exam_metadata
 
 st.set_page_config(page_title="Quiz Maker", layout="wide")
 
@@ -30,12 +30,14 @@ def main():
         return
     
     st.title("Quiz Maker")
-    mode = st.sidebar.radio("Select Mode", ["Practice Exam", "Create Exam", "Edit Exam"])
+    mode = st.sidebar.radio("Select Mode", ["Practice Exam", "Create Exam", "Edit Exam", "History"])
     
     if mode == "Create Exam":
         create_exam()
     elif mode == "Edit Exam":
         edit_exam()
+    elif mode == "History":
+        show_history()
     else:
         practice_exam()
 
@@ -236,6 +238,47 @@ def edit_exam():
 
     if selected_exam:
         exam = get_exam(selected_exam[0], selected_exam[1])
+        
+        # Add metadata editing section
+        with st.expander("Edit Exam Settings", expanded=True):
+            st.subheader("Metadata")
+            meta = exam["metadata"]
+            
+            # Show missing questions info
+            if meta.get("hasMissingQuestions", False):
+                st.info(f"Missing Questions: {', '.join(map(str, meta['missingQuestions']))}")
+            else:
+                st.success("No missing questions")
+            
+            new_session_time = st.number_input("Session Time (minutes)", 
+                                             min_value=1, 
+                                             value=meta["sessionTime"])
+            new_total_questions = st.number_input("Total Questions", 
+                                                min_value=1, 
+                                                value=meta["totalQuestions"])
+            new_questions_per_session = st.number_input("Questions Per Session",
+                                                      min_value=1,
+                                                      max_value=meta["uploadedQuestions"],
+                                                      value=meta["questionsPerSession"])
+            
+            metadata_modified = (
+                new_session_time != meta["sessionTime"] or
+                new_total_questions != meta["totalQuestions"] or
+                new_questions_per_session != meta["questionsPerSession"]
+            )
+            
+            if metadata_modified and st.button("Save Settings"):
+                if update_exam_metadata(selected_exam[0], selected_exam[1],
+                                      new_session_time, new_total_questions,
+                                      new_questions_per_session):
+                    st.success("Settings updated successfully!")
+                    st.rerun()
+                else:
+                    st.error("Failed to update settings")
+
+        # Question editing section
+        st.subheader("Edit Questions")
+        
         # Sort questions by question number
         questions = sorted(exam["questions"], key=lambda q: q['questionNumber'])
         modified = False
@@ -276,6 +319,63 @@ def edit_exam():
                 st.success("Changes saved successfully!")
             else:
                 st.error("Failed to save changes")
+
+def show_history():
+    st.header("Attempt History")
+    
+    exams = get_exam_list()
+    if not exams:
+        st.warning("No exams available")
+        return
+    
+    # Add exam filter
+    selected_exam = st.selectbox(
+        "Filter by Exam",
+        options=[(None, None)] + [(e["exam"], e["provider"]) for e in exams],
+        format_func=lambda x: "All Exams" if x[0] is None else f"{x[0]} - {x[1]}"
+    )
+    
+    # Get and display attempts
+    if selected_exam[0] is None:
+        # Show all attempts across all exams
+        all_attempts = []
+        for exam in exams:
+            attempts = get_user_exam_attempts(st.session_state.user_email, 
+                                           exam["exam"], exam["provider"])
+            for attempt in attempts:
+                attempt["exam_name"] = exam["exam"]
+                attempt["provider"] = exam["provider"]
+                all_attempts.append(attempt)
+    else:
+        # Show attempts for selected exam
+        all_attempts = get_user_exam_attempts(st.session_state.user_email, 
+                                            selected_exam[0], selected_exam[1])
+        for attempt in all_attempts:
+            attempt["exam_name"] = selected_exam[0]
+            attempt["provider"] = selected_exam[1]
+    
+    if all_attempts:
+        history_df = {
+            "Date": [],
+            "Exam": [],
+            "Batch": [],
+            "Score": [],
+            "Duration (minutes)": []
+        }
+        
+        for attempt in sorted(all_attempts, 
+                            key=lambda x: x["completed_at"], reverse=True):
+            history_df["Date"].append(attempt["completed_at"].strftime("%Y-%m-%d %H:%M"))
+            history_df["Exam"].append(f"{attempt['exam_name']} ({attempt['provider']})")
+            history_df["Batch"].append(
+                f"Batch {attempt.get('batch_number', '?')} ({attempt.get('batch_range', 'unknown')})"
+            )
+            history_df["Score"].append(f"{attempt['score']:.2f}%")
+            history_df["Duration (minutes)"].append(f"{attempt['duration_minutes']:.1f}")
+        
+        st.dataframe(history_df, use_container_width=True)
+    else:
+        st.info("No attempts found")
 
 if __name__ == "__main__":
     main()

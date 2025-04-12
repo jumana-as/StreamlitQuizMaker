@@ -67,6 +67,33 @@ def update_exam_questions(exam_name: str, provider: str, questions: List[Dict]):
     get_exam.clear()
     return result.modified_count > 0
 
+def update_exam_metadata(exam_name: str, provider: str, session_time: int, total_questions: int, questions_per_session: int):
+    db = get_database()
+    exam = db.exams.find_one({"exam": exam_name, "provider": provider})
+    if not exam:
+        return False
+    
+    # Recalculate missing questions with new total_questions value
+    missing_questions = find_missing_questions(exam["questions"], total_questions)
+    
+    result = db.exams.update_one(
+        {"exam": exam_name, "provider": provider},
+        {
+            "$set": {
+                "metadata": {
+                    "sessionTime": session_time,
+                    "totalQuestions": total_questions,
+                    "questionsPerSession": questions_per_session,
+                    "uploadedQuestions": len(exam["questions"]),
+                    "missingQuestions": missing_questions,
+                    "hasMissingQuestions": len(missing_questions) > 0
+                }
+            }
+        }
+    )
+    get_exam.clear()
+    return result.modified_count > 0
+
 @st.cache_data(ttl=600)
 def get_exam_list():
     db = get_database()
