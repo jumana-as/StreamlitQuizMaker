@@ -28,10 +28,9 @@ def main():
     if not is_authorized():
         st.error("Unauthorized access")
         return
-
-    st.title("Quiz Maker")
     
-    mode = st.sidebar.radio("Mode", ["Practice Exam", "Create Exam", "Edit Exam"])
+    st.title("Quiz Maker")
+    mode = st.sidebar.radio("Select Mode", ["Practice Exam", "Create Exam", "Edit Exam"])
     
     if mode == "Create Exam":
         create_exam()
