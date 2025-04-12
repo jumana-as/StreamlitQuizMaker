@@ -5,7 +5,10 @@ import math
 from datetime import datetime, timedelta
 from typing import Dict
 from auth import init_auth, authenticate, is_authorized
-from database import save_exam, get_exam_list, get_exam, save_user_progress, get_user_exam_attempts, update_exam_metadata, update_single_question
+from database import (
+    save_exam, get_exam_list, get_exam, save_user_progress, 
+    get_user_exam_attempts, update_exam_metadata, update_single_question
+)
 
 st.set_page_config(page_title="", layout="wide")
 
