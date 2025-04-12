@@ -21,9 +21,39 @@ def is_authorized():
     return (st.session_state.user_email and 
             st.session_state.user_email == st.secrets["ALLOWED_EMAIL"])
 
+def get_initials(name: str) -> str:
+    parts = name.split() if name else []
+    return ''.join(word[0].upper() for word in parts) if parts else '?'
+
 def show_user_info():
     if st.experimental_user.is_logged_in:
-        st.sidebar.success(f"✓ Logged in as: {st.experimental_user.email}")
-        if st.experimental_user.name:
-            st.sidebar.text(f"Name: {st.experimental_user.name}")
+        # Create avatar circle with user initials
+        initials = get_initials(st.experimental_user.name)
+        user_info = f"""
+        **Email:** {st.experimental_user.email}
+        **Name:** {st.experimental_user.name or 'N/A'}
+        """
+        
+        # Style the avatar circle and position it in the sidebar
+        st.sidebar.markdown(
+            f"""
+            <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                <div title="{user_info}" style="
+                    background-color: #3498db;
+                    color: white;
+                    border-radius: 50%;
+                    width: 40px;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: bold;
+                    margin-right: 10px;
+                    cursor: help;
+                ">{initials}</div>
+                <div style="cursor: help;" title="{user_info}">Logged in ✓</div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
         st.sidebar.divider()
