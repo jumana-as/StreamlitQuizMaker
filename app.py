@@ -247,7 +247,8 @@ def edit_exam():
                 # Display question options
                 st.write("Options:")
                 for opt in question["options"]:
-                    st.write(f"- {opt['optionText']}")
+                    # st.write(f"- {opt['optionText']}")
+                    st.write(f"{opt['optionLetter']}. {opt['optionText']}")
                 
                 # Edit verified answer
                 current_verified = question["verifiedAnswer"]
