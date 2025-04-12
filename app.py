@@ -7,7 +7,7 @@ from typing import Dict
 from auth import init_auth, authenticate, is_authorized
 from database import save_exam, get_exam_list, get_exam, save_user_progress, get_user_exam_attempts, update_exam_questions, update_exam_metadata
 
-st.set_page_config(page_title="Quiz Maker", layout="wide")
+st.set_page_config(page_title="", layout="wide")
 
 def init_session_state():
     if "current_question" not in st.session_state:
@@ -286,21 +286,25 @@ def edit_exam():
 
         # Question editing section
         st.subheader("Edit Questions")
-        
-        # Sort questions by question number
         questions = sorted(exam["questions"], key=lambda q: q['questionNumber'])
         modified = False
 
         st.info(f"Editing {len(questions)} questions")
         
+        # Add some spacing
+        st.markdown("<br>", unsafe_allow_html=True)
+        
         for i, question in enumerate(questions):
-            with st.expander(f"Question {question['questionNumber']}: {question['questionText'][:100]}..."):
-                # Display question options
-                st.write("Options:")
-                for opt in question["options"]:
-                    # st.write(f"- {opt['optionText']}")
-                    st.write(f"{opt['optionLetter']}. {opt['optionText']}")
-                
+            st.markdown(f"# {question['questionNumber']}")
+            st.write(question['questionText'])
+            
+            # Display question options
+            st.write("Options:")
+            for opt in question["options"]:
+                st.write(f"{opt['optionLetter']}. {opt['optionText']}")
+            
+            cols = st.columns([3, 1])
+            with cols[0]:
                 # Edit verified answer
                 current_verified = question["verifiedAnswer"]
                 new_verified = st.text_input(
@@ -311,16 +315,20 @@ def edit_exam():
                 if new_verified != current_verified:
                     question["verifiedAnswer"] = new_verified
                     modified = True
-                
+            
+            with cols[1]:
                 # Toggle isMarked
                 is_marked = st.checkbox(
-                    "Mark Question for Review",
+                    "Mark for Review",
                     value=question.get("isMarked", False),
                     key=f"mark_{i}"
                 )
                 if is_marked != question.get("isMarked", False):
                     question["isMarked"] = is_marked
                     modified = True
+            
+            # Add divider between questions
+            st.divider()
 
         # Sticky save button at the bottom
         with footer:
