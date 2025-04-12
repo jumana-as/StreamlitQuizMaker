@@ -295,7 +295,6 @@ def edit_exam():
 
         # Add side navigation
         with question_nav:
-            # st.sidebar.markdown("### ")
             st.sidebar.markdown(
                 """
                 <style>
@@ -304,23 +303,16 @@ def edit_exam():
                         overflow-y: auto;
                         padding: 10px;
                     }
-                    .question-link {
-                        display: block;
-                        padding: 5px;
+                    .nav-button {
+                        width: 100%;
+                        text-align: left;
+                        background: none;
                         margin: 2px 0;
-                        text-decoration: none;
-                        color: inherit;
-                    }
-                    .question-link:hover {
-                        background-color: #f0f2f6;
-                        border-radius: 4px;
                     }
                     .current {
-                        background-color: #e6f3ff;
-                        border-radius: 4px;
+                        background-color: #e6f3ff !important;
                     }
                 </style>
-                <div class="question-nav">
                 """,
                 unsafe_allow_html=True
             )
@@ -333,14 +325,17 @@ def edit_exam():
                     icons.append("⚠️")
                     
                 icon_str = " ".join(icons)
-                current_class = " current" if i == st.session_state.editing_question else ""
+                button_key = f"nav_{i}"
                 
-                st.sidebar.markdown(
-                    f"""<div class="question-link{current_class}" onclick="location.href='#{i}'">Q{q['questionNumber']} {icon_str}</div>""", 
-                    unsafe_allow_html=True
-                )
-            
-            st.sidebar.markdown("</div>", unsafe_allow_html=True)
+                # Use conditional formatting for current question
+                button_label = f"Q{q['questionNumber']} {icon_str}"
+                if i == st.session_state.editing_question:
+                    button_label = f"**{button_label}**"
+                
+                if st.sidebar.button(button_label, key=button_key, 
+                                  use_container_width=True):
+                    st.session_state.editing_question = i
+                    st.rerun()
 
         # Display current question
         question = questions[st.session_state.editing_question]
