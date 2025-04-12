@@ -3,6 +3,7 @@ import json
 import time
 import math
 from datetime import datetime, timedelta
+from typing import Dict
 from auth import init_auth, authenticate, is_authorized
 from database import save_exam, get_exam_list, get_exam, save_user_progress, get_user_exam_attempts, update_exam_questions, update_exam_metadata
 
