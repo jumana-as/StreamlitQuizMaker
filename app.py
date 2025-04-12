@@ -229,7 +229,7 @@ def show_results():
     )
 
 def edit_exam():
-    st.header("Edit")
+    # st.header("Edit")
     
     # Create placeholders
     question_nav = st.sidebar.container()
@@ -295,7 +295,7 @@ def edit_exam():
 
         # Add side navigation
         with question_nav:
-            st.sidebar.markdown("### ")
+            # st.sidebar.markdown("### ")
             st.sidebar.markdown(
                 """
                 <style>
