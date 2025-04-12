@@ -33,9 +33,9 @@ def main():
     st.title("Quiz Maker")
     mode = st.sidebar.radio("Select Mode", ["Practice", "Create", "Edit", "History"])
     
-    if mode == "Create Exam":
+    if mode == "Create":
         create_exam()
-    elif mode == "Edit Exam":
+    elif mode == "Edit":
         edit_exam()
     elif mode == "History":
         show_history()
