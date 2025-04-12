@@ -94,6 +94,24 @@ def update_exam_metadata(exam_name: str, provider: str, session_time: int, total
     get_exam.clear()
     return result.modified_count > 0
 
+def update_single_question(exam_name: str, provider: str, question_number: int, 
+                         verified_answer: str, is_marked: bool) -> bool:
+    db = get_database()
+    result = db.exams.update_one(
+        {
+            "exam": exam_name, 
+            "provider": provider,
+            "questions.questionNumber": question_number
+        },
+        {
+            "$set": {
+                "questions.$.verifiedAnswer": verified_answer,
+                "questions.$.isMarked": is_marked
+            }
+        }
+    )
+    return result.modified_count > 0
+
 @st.cache_data(ttl=600)
 def get_exam_list():
     db = get_database()

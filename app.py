@@ -30,7 +30,7 @@ def main():
         st.error("Unauthorized access")
         return
     
-    st.title("Quiz Maker")
+    st.title("")
     mode = st.sidebar.radio("Select Mode", ["Practice", "Create", "Edit", "History"])
     
     if mode == "Create":
@@ -230,7 +230,6 @@ def edit_exam():
     st.header("Edit")
     
     # Create placeholders
-    footer = st.container()
     question_nav = st.sidebar.container()
     
     # Main content
@@ -247,6 +246,9 @@ def edit_exam():
 
     if selected_exam:
         exam = get_exam(selected_exam[0], selected_exam[1])
+        
+        # Add cache refresh button at top
+        st.button("🔄 Refresh Cache", on_click=get_exam.clear)
         
         # Add metadata editing section
         with st.expander("Edit Exam Settings", expanded=True):
@@ -288,121 +290,64 @@ def edit_exam():
         # Question editing section
         st.subheader("Edit Questions")
         questions = sorted(exam["questions"], key=lambda q: q['questionNumber'])
-        modified = False
-
-        # Add side navigation
-        with question_nav:
-            st.sidebar.markdown("### Questions")
-            st.sidebar.markdown(
-                """
-                <style>
-                    .question-nav {
-                        max-height: 400px;
-                        overflow-y: auto;
-                        padding: 10px;
-                    }
-                    .question-link {
-                        display: block;
-                        padding: 5px;
-                        margin: 2px 0;
-                        text-decoration: none;
-                        color: inherit;
-                    }
-                    .question-link:hover {
-                        background-color: #f0f2f6;
-                        border-radius: 4px;
-                    }
-                </style>
-                <div class="question-nav">
-                """,
-                unsafe_allow_html=True
-            )
-            
-            for q in questions:
-                q_num = q['questionNumber']
-                icons = []
-                if q.get("isMarked", False):
-                    icons.append("🚩")
-                if not q.get("verifiedAnswer"):
-                    icons.append("⚠️")
-                    
-                icon_str = " ".join(icons)
-                st.sidebar.markdown(
-                    f"""<a href="#{q_num}" class="question-link">Q{q_num} {icon_str}</a>""",
-                    unsafe_allow_html=True
-                )
-            
-            st.sidebar.markdown("</div>", unsafe_allow_html=True)
 
         # Question display
         for i, question in enumerate(questions):
             st.markdown(f'<div id="{question["questionNumber"]}"></div>', unsafe_allow_html=True)
-            st.markdown(f"### Question {question['questionNumber']}")
-            st.write(question['questionText'])
-            
-            # Display question options
-            st.write("Options:")
-            for opt in question["options"]:
-                st.write(f"{opt['optionLetter']}. {opt['optionText']}")
-            
-            cols = st.columns([3, 1])
-            with cols[0]:
-                # Edit verified answer
-                current_verified = question["verifiedAnswer"]
-                new_verified = st.text_input(
-                    "Verified Answer", 
-                    value=current_verified,
-                    key=f"verified_{i}"
-                )
-                if new_verified != current_verified:
-                    question["verifiedAnswer"] = new_verified
-                    modified = True
-            
-            with cols[1]:
-                # Toggle isMarked
-                is_marked = st.checkbox(
-                    "Mark for Review",
-                    value=question.get("isMarked", False),
-                    key=f"mark_{i}"
-                )
-                if is_marked != question.get("isMarked", False):
-                    question["isMarked"] = is_marked
-                    modified = True
-            
-            # Add divider between questions
-            st.divider()
+            with st.container():
+                st.markdown(f"### {question['questionNumber']}")
+                st.write(question['questionText'])
+                
+                # Display question options
+                st.write("Options:")
+                for opt in question["options"]:
+                    st.write(f"{opt['optionLetter']}. {opt['optionText']}")
+                
+                cols = st.columns([3, 1, 1])
+                with cols[0]:
+                    # Edit verified answer
+                    new_verified = st.text_input(
+                        "Verified Answer", 
+                        value=question.get("verifiedAnswer", ""),
+                        key=f"verified_{i}"
+                    )
+                
+                with cols[1]:
+                    # Toggle isMarked
+                    is_marked = st.checkbox(
+                        "Mark for Review",
+                        value=question.get("isMarked", False),
+                        key=f"mark_{i}"
+                    )
+                
+                with cols[2]:
+                    if (new_verified != question.get("verifiedAnswer", "") or 
+                        is_marked != question.get("isMarked", False)):
+                        if st.button("Save", key=f"save_{i}"):
+                            if update_single_question(
+                                selected_exam[0], 
+                                selected_exam[1],
+                                question["questionNumber"],
+                                new_verified,
+                                is_marked
+                            ):
+                                st.success("✓")
+                            else:
+                                st.error("Failed to save")
 
-        # Sticky save button at the bottom
-        with footer:
-            st.markdown(
-                """
-                <div class='fixed-bottom'>
-                    <style>
-                        .fixed-bottom {
-                            position: fixed;
-                            bottom: 0;
-                            left: 0;
-                            right: 0;
-                            background-color: white;
-                            padding: 1rem;
-                            border-top: 1px solid #ddd;
-                            text-align: left;  /* Changed from center to left */
-                            z-index: 999;
-                        }
-                        .fixed-bottom button {
-                            margin-left: 1rem;  /* Add left margin to button */
-                        }
-                    </style>
-                """, 
-                unsafe_allow_html=True
-            )
-            if modified:
-                if st.button("💾 Save Changes", type="primary"):
-                    if update_exam_questions(selected_exam[0], selected_exam[1], questions):
-                        st.success("Changes saved successfully!")
-                        st.rerun()
-                    else:
-                        st.error("Failed to save changes")
+                # Add details expander
+                with st.expander("Show Details"):
+                    st.write("Comments:")
+                    for comment in question["comments"]:
+                        head = comment['commentHead'].replace('\n', ' ').replace('\t', ' ').strip()
+                        content = comment['commentContent'].replace('\n', ' ').replace('\t', ' ').strip()
+                        selected = f" [{comment.get('commentSelectedAnswer', '')}]" if comment.get('commentSelectedAnswer') else ""
+                        st.write(f"{head}{selected}: {content}")
+                    st.write(f"Suggested Answer: {question['suggestedAnswer']}")
+                    st.write("Vote Distribution:", question["voteDistribution"])
+                    st.write(f"Verified Answer: {question['verifiedAnswer']}")
+            
+            st.divider()
 
 def show_attempt_details(attempt: Dict):
     with st.expander("View Attempt Details"):
