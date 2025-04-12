@@ -229,8 +229,9 @@ def show_results():
 def edit_exam():
     st.header("Edit")
     
-    # Create a placeholder for the sticky footer
+    # Create placeholders
     footer = st.container()
+    question_nav = st.sidebar.container()
     
     # Main content
     exams = get_exam_list()
@@ -289,13 +290,54 @@ def edit_exam():
         questions = sorted(exam["questions"], key=lambda q: q['questionNumber'])
         modified = False
 
-        st.info(f"Editing {len(questions)} questions")
-        
-        # Add some spacing
-        st.markdown("<br>", unsafe_allow_html=True)
-        
+        # Add side navigation
+        with question_nav:
+            st.sidebar.markdown("### Questions")
+            st.sidebar.markdown(
+                """
+                <style>
+                    .question-nav {
+                        max-height: 400px;
+                        overflow-y: auto;
+                        padding: 10px;
+                    }
+                    .question-link {
+                        display: block;
+                        padding: 5px;
+                        margin: 2px 0;
+                        text-decoration: none;
+                        color: inherit;
+                    }
+                    .question-link:hover {
+                        background-color: #f0f2f6;
+                        border-radius: 4px;
+                    }
+                </style>
+                <div class="question-nav">
+                """,
+                unsafe_allow_html=True
+            )
+            
+            for q in questions:
+                q_num = q['questionNumber']
+                icons = []
+                if q.get("isMarked", False):
+                    icons.append("🚩")
+                if not q.get("verifiedAnswer"):
+                    icons.append("⚠️")
+                    
+                icon_str = " ".join(icons)
+                st.sidebar.markdown(
+                    f"""<a href="#{q_num}" class="question-link">Q{q_num} {icon_str}</a>""",
+                    unsafe_allow_html=True
+                )
+            
+            st.sidebar.markdown("</div>", unsafe_allow_html=True)
+
+        # Question display
         for i, question in enumerate(questions):
-            st.markdown(f"# {question['questionNumber']}")
+            st.markdown(f'<div id="{question["questionNumber"]}"></div>', unsafe_allow_html=True)
+            st.markdown(f"### Question {question['questionNumber']}")
             st.write(question['questionText'])
             
             # Display question options
@@ -344,8 +386,11 @@ def edit_exam():
                             background-color: white;
                             padding: 1rem;
                             border-top: 1px solid #ddd;
-                            text-align: center;
+                            text-align: left;  /* Changed from center to left */
                             z-index: 999;
+                        }
+                        .fixed-bottom button {
+                            margin-left: 1rem;  /* Add left margin to button */
                         }
                     </style>
                 """, 
