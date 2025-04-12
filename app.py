@@ -62,7 +62,6 @@ def create_exam():
             st.success("Exam saved successfully!")
 
 def practice_exam():
-    
     exams = get_exam_list()
     if not exams:
         st.warning("No exams available")
@@ -70,12 +69,11 @@ def practice_exam():
         
     selected_exam = st.selectbox(
         "Select Exam",
-        options=[(e["exam"], e["provider"]) for e in exams],
-        format_func=lambda x: f"{x[0]} - {x[1]}"
+        options=[None] + [(e["exam"], e["provider"]) for e in exams],
+        format_func=lambda x: "Select an exam..." if x is None else f"{x[0]} - {x[1]}"
     )
 
-    # Show attempt history
-    if selected_exam:
+    if selected_exam:  # Only proceed if an exam is selected
         show_attempt_history(selected_exam[0], selected_exam[1])
         exam = get_exam(selected_exam[0], selected_exam[1])
         
@@ -229,8 +227,6 @@ def show_results():
     )
 
 def edit_exam():
-    # st.header("Edit")
-    
     # Create placeholders
     question_nav = st.sidebar.container()
     
@@ -242,11 +238,11 @@ def edit_exam():
     
     selected_exam = st.selectbox(
         "Select Exam to Edit",
-        options=[(e["exam"], e["provider"]) for e in exams],
-        format_func=lambda x: f"{x[0]} - {x[1]}"
+        options=[None] + [(e["exam"], e["provider"]) for e in exams],
+        format_func=lambda x: "Select an exam..." if x is None else f"{x[0]} - {x[1]}"
     )
 
-    if selected_exam:
+    if selected_exam:  # Only proceed if an exam is selected
         exam = get_exam(selected_exam[0], selected_exam[1])
         
         # Add cache refresh button at top
@@ -328,7 +324,7 @@ def edit_exam():
                 button_key = f"nav_{i}"
                 
                 # Use conditional formatting for current question
-                button_label = f"Q{q['questionNumber']} {icon_str}"
+                button_label = f"{q['questionNumber']} {icon_str}"
                 if i == st.session_state.editing_question:
                     button_label = f"**{button_label}**"
                 
