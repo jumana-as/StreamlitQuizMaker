@@ -16,6 +16,8 @@ def init_session_state():
         st.session_state.exam_data = None
     if "start_time" not in st.session_state:
         st.session_state.start_time = None
+    if "editing_question" not in st.session_state:
+        st.session_state.editing_question = 0
 
 def main():
     init_auth()
@@ -288,66 +290,124 @@ def edit_exam():
                     st.error("Failed to update settings")
 
         # Question editing section
-        st.subheader("Edit Questions")
+        st.subheader("")
         questions = sorted(exam["questions"], key=lambda q: q['questionNumber'])
 
-        # Question display
-        for i, question in enumerate(questions):
-            st.markdown(f'<div id="{question["questionNumber"]}"></div>', unsafe_allow_html=True)
-            with st.container():
-                st.markdown(f"### {question['questionNumber']}")
-                st.write(question['questionText'])
-                
-                # Display question options
-                st.write("Options:")
-                for opt in question["options"]:
-                    st.write(f"{opt['optionLetter']}. {opt['optionText']}")
-                
-                cols = st.columns([3, 1, 1])
-                with cols[0]:
-                    # Edit verified answer
-                    new_verified = st.text_input(
-                        "Verified Answer", 
-                        value=question.get("verifiedAnswer", ""),
-                        key=f"verified_{i}"
-                    )
-                
-                with cols[1]:
-                    # Toggle isMarked
-                    is_marked = st.checkbox(
-                        "Mark for Review",
-                        value=question.get("isMarked", False),
-                        key=f"mark_{i}"
-                    )
-                
-                with cols[2]:
-                    if (new_verified != question.get("verifiedAnswer", "") or 
-                        is_marked != question.get("isMarked", False)):
-                        if st.button("Save", key=f"save_{i}"):
-                            if update_single_question(
-                                selected_exam[0], 
-                                selected_exam[1],
-                                question["questionNumber"],
-                                new_verified,
-                                is_marked
-                            ):
-                                st.success("✓")
-                            else:
-                                st.error("Failed to save")
-
-                # Add details expander
-                with st.expander("Show Details"):
-                    st.write("Comments:")
-                    for comment in question["comments"]:
-                        head = comment['commentHead'].replace('\n', ' ').replace('\t', ' ').strip()
-                        content = comment['commentContent'].replace('\n', ' ').replace('\t', ' ').strip()
-                        selected = f" [{comment.get('commentSelectedAnswer', '')}]" if comment.get('commentSelectedAnswer') else ""
-                        st.write(f"{head}{selected}: {content}")
-                    st.write(f"Suggested Answer: {question['suggestedAnswer']}")
-                    st.write("Vote Distribution:", question["voteDistribution"])
-                    st.write(f"Verified Answer: {question['verifiedAnswer']}")
+        # Add side navigation
+        with question_nav:
+            st.sidebar.markdown("### Questions")
+            st.sidebar.markdown(
+                """
+                <style>
+                    .question-nav {
+                        max-height: 400px;
+                        overflow-y: auto;
+                        padding: 10px;
+                    }
+                    .question-link {
+                        display: block;
+                        padding: 5px;
+                        margin: 2px 0;
+                        text-decoration: none;
+                        color: inherit;
+                    }
+                    .question-link:hover {
+                        background-color: #f0f2f6;
+                        border-radius: 4px;
+                    }
+                    .current {
+                        background-color: #e6f3ff;
+                        border-radius: 4px;
+                    }
+                </style>
+                <div class="question-nav">
+                """,
+                unsafe_allow_html=True
+            )
             
-            st.divider()
+            for i, q in enumerate(questions):
+                icons = []
+                if q.get("isMarked", False):
+                    icons.append("🚩")
+                if not q.get("verifiedAnswer"):
+                    icons.append("⚠️")
+                    
+                icon_str = " ".join(icons)
+                current_class = " current" if i == st.session_state.editing_question else ""
+                
+                if st.sidebar.markdown(
+                    f"""<div class="question-link{current_class}" onclick="location.href='#{i}'">Q{q['questionNumber']} {icon_str}</div>""", 
+                    unsafe_allow_html=True
+                ).clicked:
+                    st.session_state.editing_question = i
+                    st.rerun()
+            
+            st.sidebar.markdown("</div>", unsafe_allow_html=True)
+
+        # Display current question
+        question = questions[st.session_state.editing_question]
+        st.markdown(f'<div id="{st.session_state.editing_question}"></div>', unsafe_allow_html=True)
+        with st.container():
+            st.markdown(f"### Question {question['questionNumber']}")
+            st.write(question['questionText'])
+            
+            # Display question options
+            st.write("Options:")
+            for opt in question["options"]:
+                st.write(f"{opt['optionLetter']}. {opt['optionText']}")
+            
+            cols = st.columns([3, 1, 1])
+            with cols[0]:
+                new_verified = st.text_input(
+                    "Verified Answer", 
+                    value=question.get("verifiedAnswer", "")
+                )
+            
+            with cols[1]:
+                is_marked = st.checkbox(
+                    "Mark for Review",
+                    value=question.get("isMarked", False)
+                )
+            
+            with cols[2]:
+                if (new_verified != question.get("verifiedAnswer", "") or 
+                    is_marked != question.get("isMarked", False)):
+                    if st.button("Save"):
+                        if update_single_question(
+                            selected_exam[0],
+                            selected_exam[1],
+                            question["questionNumber"],
+                            new_verified,
+                            is_marked
+                        ):
+                            st.success("✓")
+                        else:
+                            st.error("Failed to save")
+
+            # Add details expander
+            with st.expander("Show Details"):
+                st.write("Comments:")
+                for comment in question["comments"]:
+                    head = comment['commentHead'].replace('\n', ' ').replace('\t', ' ').strip()
+                    content = comment['commentContent'].replace('\n', ' ').replace('\t', ' ').strip()
+                    selected = f" [{comment.get('commentSelectedAnswer', '')}]" if comment.get('commentSelectedAnswer') else ""
+                    st.write(f"{head}{selected}: {content}")
+                st.write(f"Suggested Answer: {question['suggestedAnswer']}")
+                st.write("Vote Distribution:", question["voteDistribution"])
+                st.write(f"Verified Answer: {question['verifiedAnswer']}")
+
+        # Add navigation buttons
+        cols = st.columns(2)
+        with cols[0]:
+            if st.session_state.editing_question > 0:
+                if st.button("← Previous"):
+                    st.session_state.editing_question -= 1
+                    st.rerun()
+        with cols[1]:
+            if st.session_state.editing_question < len(questions) - 1:
+                if st.button("Next →"):
+                    st.session_state.editing_question += 1
+                    st.rerun()
 
 def show_attempt_details(attempt: Dict):
     with st.expander("View Attempt Details"):
