@@ -163,8 +163,8 @@ def show_quiz():
     question["isMarked"] = st.checkbox("Mark for review", 
                                      key=f"mark_{question['questionNumber']}")
     
-    # Store user answer
-    question["userAnswer"] = selected_option
+    # Store user answer - only save the option letter
+    question["userAnswer"] = selected_option.split(".")[0].strip()
     
     # Navigation buttons
     cols = st.columns(2)
@@ -196,6 +196,7 @@ def show_quiz():
         st.write(f"Verified Answer: {question['verifiedAnswer']}")
 
 def show_results():
+    # Compare option letters directly
     correct_answers = sum(
         1 for q in st.session_state.exam_data 
         if q["userAnswer"] == q["verifiedAnswer"]
