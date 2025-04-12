@@ -110,7 +110,14 @@ def get_user_exam_attempts(email: str, exam_name: str, provider: str):
     db = get_database()
     attempts = db.progress.find(
         {"email": email, "exam": exam_name, "provider": provider},
-        {"score": 1, "completed_at": 1, "duration_minutes": 1, "batch_number": 1, "batch_range": 1}
+        {
+            "score": 1, 
+            "completed_at": 1, 
+            "duration_minutes": 1, 
+            "batch_number": 1, 
+            "batch_range": 1,
+            "answers": 1  # Add answers field to query projection
+        }
     ).sort("completed_at", -1)
     return list(attempts)
 
