@@ -323,6 +323,29 @@ def edit_exam():
             else:
                 st.error("Failed to save changes")
 
+def show_attempt_details(attempt: Dict):
+    with st.expander("View Attempt Details"):
+        st.write("Question by Question Analysis")
+        
+        # Sort answers by question number
+        answers = sorted(attempt["answers"], key=lambda x: x["questionNumber"])
+        
+        for q in answers:
+            user_answer = q.get("userAnswer", "No answer")
+            verified = q.get("verifiedAnswer", "Unknown")
+            is_correct = user_answer == verified
+            
+            # Format the comparison row
+            st.markdown(
+                f"""
+                **Q{q['questionNumber']}:** {
+                    f"✓ {user_answer}" if is_correct else 
+                    f"❌ <span style='color: red'>{user_answer}</span> (Correct: {verified})"
+                }
+                """,
+                unsafe_allow_html=True
+            )
+
 def show_history():
     st.header("Attempt History")
     
@@ -363,20 +386,30 @@ def show_history():
             "Exam": [],
             "Batch": [],
             "Score": [],
-            "Duration (minutes)": []
+            "Duration (minutes)": [],
+            "Actions": []
         }
         
-        for attempt in sorted(all_attempts, 
-                            key=lambda x: x["completed_at"], reverse=True):
-            history_df["Date"].append(attempt["completed_at"].strftime("%Y-%m-%d %H:%M"))
-            history_df["Exam"].append(f"{attempt['exam_name']} ({attempt['provider']})")
-            history_df["Batch"].append(
-                f"Batch {attempt.get('batch_number', '?')} ({attempt.get('batch_range', 'unknown')})"
-            )
-            history_df["Score"].append(f"{attempt['score']:.2f}%")
-            history_df["Duration (minutes)"].append(f"{attempt['duration_minutes']:.1f}")
+        # Create two columns for each attempt
+        cols = st.columns([2, 2, 2, 1, 1, 2])
         
-        st.dataframe(history_df, use_container_width=True)
+        # Headers
+        cols[0].write("**Date**")
+        cols[1].write("**Exam**")
+        cols[2].write("**Batch**")
+        cols[3].write("**Score**")
+        cols[4].write("**Duration**")
+        cols[5].write("**Details**")
+        
+        for attempt in sorted(all_attempts, key=lambda x: x["completed_at"], reverse=True):
+            cols[0].write(attempt["completed_at"].strftime("%Y-%m-%d %H:%M"))
+            cols[1].write(f"{attempt['exam_name']} ({attempt['provider']})")
+            cols[2].write(f"Batch {attempt.get('batch_number', '?')} ({attempt.get('batch_range', 'unknown')})")
+            cols[3].write(f"{attempt['score']:.2f}%")
+            cols[4].write(f"{attempt['duration_minutes']:.1f}")
+            if cols[5].button("Details", key=f"detail_{attempt['completed_at'].strftime('%Y%m%d%H%M%S')}"):
+                show_attempt_details(attempt)
+
     else:
         st.info("No attempts found")
 
