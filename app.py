@@ -31,7 +31,7 @@ def main():
         return
     
     st.title("Quiz Maker")
-    mode = st.sidebar.radio("Select Mode", ["Practice Exam", "Create Exam", "Edit Exam", "History"])
+    mode = st.sidebar.radio("Select Mode", ["Practice", "Create", "Edit", "History"])
     
     if mode == "Create Exam":
         create_exam()
@@ -60,7 +60,6 @@ def create_exam():
             st.success("Exam saved successfully!")
 
 def practice_exam():
-    st.header("Practice Exam")
     
     exams = get_exam_list()
     if not exams:
@@ -149,7 +148,7 @@ def show_quiz():
         return
 
     # Show question
-    st.subheader(f"Question {question['questionNumber']}")
+    st.subheader(f"{question['questionNumber']}")
     st.write(question["questionText"])
     
     # Show options
@@ -228,13 +227,17 @@ def show_results():
     )
 
 def edit_exam():
-    st.header("Edit Exam")
+    st.header("Edit")
     
+    # Create a placeholder for the sticky footer
+    footer = st.container()
+    
+    # Main content
     exams = get_exam_list()
     if not exams:
         st.warning("No exams available")
         return
-        
+    
     selected_exam = st.selectbox(
         "Select Exam to Edit",
         options=[(e["exam"], e["provider"]) for e in exams],
@@ -319,15 +322,38 @@ def edit_exam():
                     question["isMarked"] = is_marked
                     modified = True
 
-        if modified and st.button("Save Changes"):
-            if update_exam_questions(selected_exam[0], selected_exam[1], questions):
-                st.success("Changes saved successfully!")
-            else:
-                st.error("Failed to save changes")
+        # Sticky save button at the bottom
+        with footer:
+            st.markdown(
+                """
+                <div class='fixed-bottom'>
+                    <style>
+                        .fixed-bottom {
+                            position: fixed;
+                            bottom: 0;
+                            left: 0;
+                            right: 0;
+                            background-color: white;
+                            padding: 1rem;
+                            border-top: 1px solid #ddd;
+                            text-align: center;
+                            z-index: 999;
+                        }
+                    </style>
+                """, 
+                unsafe_allow_html=True
+            )
+            if modified:
+                if st.button("💾 Save Changes", type="primary"):
+                    if update_exam_questions(selected_exam[0], selected_exam[1], questions):
+                        st.success("Changes saved successfully!")
+                        st.rerun()
+                    else:
+                        st.error("Failed to save changes")
 
 def show_attempt_details(attempt: Dict):
     with st.expander("View Attempt Details"):
-        st.write("Question by Question Analysis")
+        st.write("Analysis")
         
         # Sort answers by question number
         answers = sorted(attempt["answers"], key=lambda x: x["questionNumber"])
