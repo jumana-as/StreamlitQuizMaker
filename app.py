@@ -22,6 +22,26 @@ def init_session_state():
     if "editing_question" not in st.session_state:
         st.session_state.editing_question = 0
 
+def format_comment_head(head: str) -> str:
+    """Format special phrases in comment headers as bold"""
+    for phrase in ["Highly Voted", "Most Recent"]:
+        if phrase in head:
+            head = head.replace(phrase, f"**{phrase}**")
+    return head
+
+def show_question_comments(question: Dict):
+    """Shared function to display question comments consistently"""
+    st.write("Comments:")
+    for comment in question["comments"]:
+        head = comment['commentHead'].replace('\n', ' ').replace('\t', ' ').strip()
+        head = format_comment_head(head)
+        content = comment['commentContent'].replace('\n', ' ').replace('\t', ' ').strip()
+        selected = f" [{comment.get('commentSelectedAnswer', '')}]" if comment.get('commentSelectedAnswer') else ""
+        st.markdown(f"{head}{selected}: {content}")
+    st.write(f"Suggested Answer: {question['suggestedAnswer']}")
+    st.write("Vote Distribution:", question["voteDistribution"])
+    st.write(f"Verified Answer: {question['verifiedAnswer']}")
+
 def main():
     init_auth()
     init_session_state()
@@ -187,23 +207,24 @@ def show_quiz():
 
     # Expandable details
     with st.expander("Show Details"):
-        st.write("Comments:")
-        for comment in question["comments"]:
-            head = comment['commentHead'].replace('\n', ' ').replace('\t', ' ').strip()
-            content = comment['commentContent'].replace('\n', ' ').replace('\t', ' ').strip()
-            selected = f" [{comment.get('commentSelectedAnswer', '')}]" if comment.get('commentSelectedAnswer') else ""
-            st.write(f"{head}{selected}: {content}")
-        st.write(f"Suggested Answer: {question['suggestedAnswer']}")
-        st.write("Vote Distribution:", question["voteDistribution"])
-        st.write(f"Verified Answer: {question['verifiedAnswer']}")
+        show_question_comments(question)
 
 def show_results():
-    # Compare option letters directly
-    correct_answers = sum(
-        1 for q in st.session_state.exam_data 
-        if q["userAnswer"] == q["verifiedAnswer"]
-    )
-    total_questions = len(st.session_state.exam_data)
+    # Format answers data to store only essential info
+    attempt_answers = []
+    for q in st.session_state.exam_data:
+        user_answer = q["userAnswer"].upper()
+        verified_answer = q["verifiedAnswer"].upper()
+        attempt_answers.append({
+            "questionNumber": q["questionNumber"],
+            "verifiedAnswer": verified_answer,
+            "userAnswer": user_answer,
+            "correct": user_answer == verified_answer
+        })
+
+    # Calculate score based on formatted answers
+    correct_answers = sum(1 for a in attempt_answers if a["correct"])
+    total_questions = len(attempt_answers)
     score = (correct_answers / total_questions) * 100
     
     # Calculate duration
@@ -223,7 +244,7 @@ def show_results():
             "score": score,
             "completed_at": end_time,
             "duration_minutes": duration_minutes,
-            "answers": st.session_state.exam_data,
+            "answers": attempt_answers,
             "batch_number": st.session_state.batch_info["number"],
             "batch_range": st.session_state.batch_info["range"]
         }
@@ -379,15 +400,7 @@ def edit_exam():
 
             # Add details expander
             with st.expander("Show Details"):
-                st.write("Comments:")
-                for comment in question["comments"]:
-                    head = comment['commentHead'].replace('\n', ' ').replace('\t', ' ').strip()
-                    content = comment['commentContent'].replace('\n', ' ').replace('\t', ' ').strip()
-                    selected = f" [{comment.get('commentSelectedAnswer', '')}]" if comment.get('commentSelectedAnswer') else ""
-                    st.write(f"{head}{selected}: {content}")
-                st.write(f"Suggested Answer: {question['suggestedAnswer']}")
-                st.write("Vote Distribution:", question["voteDistribution"])
-                st.write(f"Verified Answer: {question['verifiedAnswer']}")
+                show_question_comments(question)
 
         # Add navigation buttons
         cols = st.columns(2)
