@@ -11,6 +11,7 @@ def edit_exam():
         st.warning("No exams available")
         return
     
+    # Calculate and show verification progress
     selected_exam = st.selectbox(
         "Select Exam to Edit",
         options=[None] + [(e["exam"], e["provider"]) for e in exams],
@@ -19,6 +20,20 @@ def edit_exam():
 
     if selected_exam:
         exam = get_exam(selected_exam[0], selected_exam[1])
+        
+        # Add verification progress stats
+        total_questions = len(exam["questions"])
+        verified_questions = sum(1 for q in exam["questions"] if q.get("verifiedAnswer"))
+        progress_percentage = (verified_questions / total_questions) * 100
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Questions Verified", f"{verified_questions}/{total_questions}")
+        with col2:
+            st.metric("Progress", f"{progress_percentage:.1f}%")
+        
+        st.progress(progress_percentage / 100)
+        st.divider()
         
         st.button("🔄 Refresh Cache", on_click=get_exam.clear)
         
