@@ -1,6 +1,7 @@
 import pymongo
 import streamlit as st
 from typing import List, Dict
+from datetime import datetime
 
 @st.cache_resource
 def get_database():
@@ -111,6 +112,35 @@ def update_single_question(exam_name: str, provider: str, question_number: int,
         array_filters=[{"q.questionNumber": question_number}]
     )
     return result.modified_count > 0
+
+def save_note(email: str, exam_name: str, provider: str, question_number: int, note_text: str) -> bool:
+    db = get_database()
+    result = db.notes.update_one(
+        {
+            "email": email,
+            "exam": exam_name,
+            "provider": provider,
+            "questionNumber": question_number
+        },
+        {
+            "$set": {
+                "text": note_text,
+                "updated_at": datetime.now()
+            }
+        },
+        upsert=True
+    )
+    return result.acknowledged
+
+def get_note(email: str, exam_name: str, provider: str, question_number: int) -> str:
+    db = get_database()
+    note = db.notes.find_one({
+        "email": email,
+        "exam": exam_name,
+        "provider": provider,
+        "questionNumber": question_number
+    })
+    return note["text"] if note else ""
 
 @st.cache_data(ttl=600)
 def get_exam_list():

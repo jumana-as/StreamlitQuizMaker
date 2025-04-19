@@ -1,5 +1,6 @@
 import streamlit as st
-from database import get_exam_list, get_exam, update_exam_metadata, update_single_question
+from database import (get_exam_list, get_exam, update_exam_metadata, 
+                     update_single_question, save_note, get_note)
 from .components import show_question_comments
 
 def edit_exam():
@@ -127,6 +128,35 @@ def edit_exam():
 
             with st.expander("Show Details"):
                 show_question_comments(question)
+                
+                # Add notes section
+                st.divider()
+                st.subheader("My Notes")
+                current_note = get_note(
+                    st.session_state.user_email,
+                    selected_exam[0],
+                    selected_exam[1],
+                    question["questionNumber"]
+                )
+                
+                note_text = st.text_area(
+                    "Add/Edit Note",
+                    value=current_note,
+                    key=f"note_{question['questionNumber']}"
+                )
+                
+                if note_text != current_note:
+                    if st.button("Save Note"):
+                        if save_note(
+                            st.session_state.user_email,
+                            selected_exam[0],
+                            selected_exam[1],
+                            question["questionNumber"],
+                            note_text
+                        ):
+                            st.success("Note saved!")
+                        else:
+                            st.error("Failed to save note")
 
         cols = st.columns(2)
         with cols[0]:
