@@ -129,33 +129,30 @@ def edit_exam():
                 
                 col1, col2 = st.columns(2)
                 with col1:
-                    if (new_verified != question.get("verifiedAnswer", "") or 
-                        is_marked != question.get("isMarked", False)):
-                        if st.button("Save Answer"):
-                            if update_single_question(
-                                selected_exam[0],
-                                selected_exam[1],
-                                question["questionNumber"],
-                                new_verified,
-                                is_marked
-                            ):
-                                st.success("✓")
-                            else:
-                                st.error("Failed to save")
+                    if st.button("Save Answer"):
+                        if update_single_question(
+                            selected_exam[0],
+                            selected_exam[1],
+                            question["questionNumber"],
+                            new_verified,
+                            is_marked
+                        ):
+                            st.success("✓")
+                        else:
+                            st.error("Failed to save")
                 
                 with col2:
-                    if note_text != current_note:
-                        if st.button("Save Note"):
-                            if save_note(
-                                st.session_state.user_email,
-                                selected_exam[0],
-                                selected_exam[1],
-                                question["questionNumber"],
-                                note_text
-                            ):
-                                st.success("Note saved!")
-                            else:
-                                st.error("Failed to save note")
+                    if st.button("Save Note"):
+                        if save_note(
+                            st.session_state.user_email,
+                            selected_exam[0],
+                            selected_exam[1],
+                            question["questionNumber"],
+                            note_text
+                        ):
+                            st.success("Note saved!")
+                        else:
+                            st.error("Failed to save note")
             
             with st.expander("Show Details"):
                 show_question_comments(question)
