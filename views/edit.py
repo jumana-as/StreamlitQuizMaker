@@ -107,7 +107,7 @@ def edit_exam():
             
             with cols[1]:
                 is_marked = st.checkbox(
-                    "Mark for Review",
+                    "Marked",
                     value=question.get("isMarked", False),
                     key=f"edit_mark_{question['questionNumber']}"
                 )
@@ -136,7 +136,7 @@ def edit_exam():
                 )
                 
                 note_text = st.text_area(
-                    "My Notes",
+                    "Notes",
                     value=current_note,
                     key=f"note_{question['questionNumber']}"
                 )
