@@ -24,13 +24,17 @@ def edit_exam():
         # Add verification progress stats
         total_questions = len(exam["questions"])
         verified_questions = sum(1 for q in exam["questions"] if q.get("verifiedAnswer"))
+        marked_questions = sum(1 for q in exam["questions"] if q.get("isMarked", False))
         progress_percentage = (verified_questions / total_questions) * 100
 
-        col1, col2 = st.columns(2)
+        # Display metrics in three columns
+        col1, col2, col3 = st.columns(3)
         with col1:
-            st.metric("Questions Verified", f"{verified_questions}/{total_questions}")
+            st.metric("Verified ✅", f"{verified_questions}/{total_questions}")
         with col2:
             st.metric("Progress", f"{progress_percentage:.1f}%")
+        with col3:
+            st.metric("Marked 🚩", f"{marked_questions}")
         
         st.progress(progress_percentage / 100)
         st.divider()
