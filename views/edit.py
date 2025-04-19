@@ -103,9 +103,17 @@ def edit_exam():
                 new_verified = st.text_input(
                     "Verified Answer", 
                     value=question.get("verifiedAnswer", ""),
-                    key=f"verified_{question['questionNumber']}"  # Add unique key using question number
+                    key=f"verified_{question['questionNumber']}"
                 )
-                
+            
+            with cols[1]:
+                is_marked = st.checkbox(
+                    "Mark for Review",
+                    value=question.get("isMarked", False),
+                    key=f"edit_mark_{question['questionNumber']}"
+                )
+            
+            with cols[0]:
                 current_note = get_note(
                     st.session_state.user_email,
                     selected_exam[0],
@@ -149,13 +157,6 @@ def edit_exam():
                             else:
                                 st.error("Failed to save note")
             
-            with cols[1]:
-                is_marked = st.checkbox(
-                    "Mark for Review",
-                    value=question.get("isMarked", False),
-                    key=f"edit_mark_{question['questionNumber']}"
-                )
-
             with st.expander("Show Details"):
                 show_question_comments(question)
 
