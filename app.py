@@ -36,13 +36,29 @@ def main():
     if "mode" not in st.session_state:
         st.session_state.mode = "Practice"
     
-    # Create horizontal mode buttons
+    # Add custom CSS for compact buttons
+    st.sidebar.markdown("""
+        <style>
+            div[data-testid="column"] {
+                padding: 0 !important;
+                margin: 0 2px !important;
+            }
+            div[data-testid="stHorizontalBlock"] {
+                gap: 0.2rem !important;
+            }
+            .stButton button {
+                padding: 2px 8px !important;
+                font-size: 14px !important;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+    
+    # Create compact horizontal mode buttons
     st.sidebar.markdown("### Mode")
-    mode_cols = st.sidebar.columns(4)
+    mode_cols = st.sidebar.columns([1, 1, 1, 1])
     modes = ["Practice", "Create", "Edit", "History"]
     
     for i, mode in enumerate(modes):
-        # Use different styling for selected mode
         if mode_cols[i].button(
             mode,
             type="primary" if st.session_state.mode == mode else "secondary",
