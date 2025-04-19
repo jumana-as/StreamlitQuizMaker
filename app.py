@@ -31,13 +31,34 @@ def main():
         return
     
     st.title("")
-    mode = st.sidebar.radio("Select Mode", ["Practice", "Create", "Edit", "History"])
     
-    if mode == "Create":
+    # Initialize mode in session state if not exists
+    if "mode" not in st.session_state:
+        st.session_state.mode = "Practice"
+    
+    # Create horizontal mode buttons
+    st.sidebar.markdown("### Mode")
+    mode_cols = st.sidebar.columns(4)
+    modes = ["Practice", "Create", "Edit", "History"]
+    
+    for i, mode in enumerate(modes):
+        # Use different styling for selected mode
+        if mode_cols[i].button(
+            mode,
+            type="primary" if st.session_state.mode == mode else "secondary",
+            use_container_width=True
+        ):
+            st.session_state.mode = mode
+            st.rerun()
+    
+    st.sidebar.divider()
+    
+    # Use session state mode instead of radio button value
+    if st.session_state.mode == "Create":
         create_exam()
-    elif mode == "Edit":
+    elif st.session_state.mode == "Edit":
         edit_exam()
-    elif mode == "History":
+    elif st.session_state.mode == "History":
         show_history()
     else:
         practice_exam()
