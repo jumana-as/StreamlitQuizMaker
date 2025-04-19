@@ -97,40 +97,52 @@ def update_exam_metadata(exam_name: str, provider: str, session_time: int, total
 
 def update_single_question(exam_name: str, provider: str, question_number: int, 
                          verified_answer: str, is_marked: bool) -> bool:
-    db = get_database()
-    result = db.exams.update_one(
-        {
-            "exam": exam_name, 
-            "provider": provider,
-        },
-        {
-            "$set": {
-                "questions.$[q].verifiedAnswer": verified_answer,
-                "questions.$[q].isMarked": is_marked
-            }
-        },
-        array_filters=[{"q.questionNumber": question_number}]
-    )
-    return result.modified_count > 0
+    try:
+        db = get_database()
+        result = db.exams.update_one(
+            {
+                "exam": exam_name, 
+                "provider": provider,
+            },
+            {
+                "$set": {
+                    "questions.$[q].verifiedAnswer": verified_answer,
+                    "questions.$[q].isMarked": is_marked
+                }
+            },
+            array_filters=[{"q.questionNumber": question_number}]
+        )
+        # Clear exam cache after update
+        get_exam.clear()
+        return True
+    except Exception as e:
+        print(f"Error updating question: {e}")
+        return False
 
 def save_note(email: str, exam_name: str, provider: str, question_number: int, note_text: str) -> bool:
-    db = get_database()
-    result = db.notes.update_one(
-        {
-            "email": email,
-            "exam": exam_name,
-            "provider": provider,
-            "questionNumber": question_number
-        },
-        {
-            "$set": {
-                "text": note_text,
-                "updated_at": datetime.now()
-            }
-        },
-        upsert=True
-    )
-    return result.acknowledged
+    try:
+        db = get_database()
+        result = db.notes.update_one(
+            {
+                "email": email,
+                "exam": exam_name,
+                "provider": provider,
+                "questionNumber": question_number
+            },
+            {
+                "$set": {
+                    "text": note_text,
+                    "updated_at": datetime.now()
+                }
+            },
+            upsert=True
+        )
+        # Clear note cache
+        get_note.clear()
+        return True
+    except Exception as e:
+        print(f"Error saving note: {e}")
+        return False
 
 def get_note(email: str, exam_name: str, provider: str, question_number: int) -> str:
     db = get_database()
