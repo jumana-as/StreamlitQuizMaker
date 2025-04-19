@@ -101,14 +101,14 @@ def update_single_question(exam_name: str, provider: str, question_number: int,
         {
             "exam": exam_name, 
             "provider": provider,
-            "questions.questionNumber": question_number
         },
         {
             "$set": {
-                "questions.$.verifiedAnswer": verified_answer,
-                "questions.$.isMarked": is_marked
+                "questions.$[q].verifiedAnswer": verified_answer,
+                "questions.$[q].isMarked": is_marked
             }
-        }
+        },
+        array_filters=[{"q.questionNumber": question_number}]
     )
     return result.modified_count > 0
 
