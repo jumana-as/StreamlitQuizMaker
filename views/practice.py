@@ -128,29 +128,51 @@ def practice_exam():
             missing = exam["metadata"]["missingQuestions"]
             st.warning(f"⚠️ This exam has {len(missing)} missing questions: {missing}")
         
-        total_questions = exam["metadata"]["uploadedQuestions"]
-        questions_per_session = exam["metadata"]["questionsPerSession"]
-        num_batches = math.ceil(total_questions / questions_per_session)
+        # Add practice mode selector
+        practice_mode = st.radio("Practice Mode", ["Batch", "Marked Questions"])
         
-        batch_options = [f"Questions {i*questions_per_session + 1} - {min((i+1)*questions_per_session, total_questions)}" 
-                        for i in range(num_batches)]
-        selected_batch = st.radio("Select question batch:", batch_options)
-        
-        if st.button("Start New Attempt"):
-            batch_idx = batch_options.index(selected_batch)
-            start_idx = batch_idx * questions_per_session
-            end_idx = min((batch_idx + 1) * questions_per_session, total_questions)
+        if practice_mode == "Batch":
+            total_questions = exam["metadata"]["uploadedQuestions"]
+            questions_per_session = exam["metadata"]["questionsPerSession"]
+            num_batches = math.ceil(total_questions / questions_per_session)
             
-            questions = sorted(exam["questions"][start_idx:end_idx], 
-                            key=lambda q: q['questionNumber'])
-            st.session_state.exam_data = questions
-            st.session_state.exam_metadata = exam["metadata"]
-            st.session_state.batch_info = {
-                "number": batch_idx + 1,
-                "range": selected_batch
-            }
-            st.session_state.start_time = datetime.now()
-            st.session_state.current_question = 0
+            batch_options = [f"Questions {i*questions_per_session + 1} - {min((i+1)*questions_per_session, total_questions)}" 
+                            for i in range(num_batches)]
+            selected_batch = st.radio("Select question batch:", batch_options)
+            
+            if st.button("Start New Attempt"):
+                batch_idx = batch_options.index(selected_batch)
+                start_idx = batch_idx * questions_per_session
+                end_idx = min((batch_idx + 1) * questions_per_session, total_questions)
+                
+                questions = sorted(exam["questions"][start_idx:end_idx], 
+                                key=lambda q: q['questionNumber'])
+                st.session_state.batch_info = {
+                    "number": batch_idx + 1,
+                    "range": selected_batch
+                }
+                start_practice(questions, exam["metadata"])
+        else:
+            # Handle marked questions mode
+            marked_questions = [q for q in exam["questions"] if q.get("isMarked", False)]
+            if not marked_questions:
+                st.warning("No marked questions found in this exam")
+                return
+                
+            st.info(f"Found {len(marked_questions)} marked questions")
+            if st.button("Start New Attempt"):
+                st.session_state.batch_info = {
+                    "number": 0,
+                    "range": "Marked Questions"
+                }
+                start_practice(marked_questions, exam["metadata"])
 
     if st.session_state.exam_data:
         show_quiz()
+
+def start_practice(questions: list, metadata: dict):
+    """Helper function to start a new practice attempt"""
+    st.session_state.exam_data = questions
+    st.session_state.exam_metadata = metadata
+    st.session_state.start_time = datetime.now()
+    st.session_state.current_question = 0
