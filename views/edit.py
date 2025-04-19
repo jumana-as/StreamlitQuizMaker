@@ -102,7 +102,8 @@ def edit_exam():
             with cols[0]:
                 new_verified = st.text_input(
                     "Verified Answer", 
-                    value=question.get("verifiedAnswer", "")
+                    value=question.get("verifiedAnswer", ""),
+                    key=f"verified_{question['questionNumber']}"  # Add unique key using question number
                 )
                 
                 current_note = get_note(
