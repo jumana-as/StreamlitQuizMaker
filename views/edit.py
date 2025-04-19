@@ -98,7 +98,7 @@ def edit_exam():
                 if i == st.session_state.editing_question:
                     button_label = f"**{button_label}**"
                 
-                if st.sidebar.button(button_label, key=button_key, use_container_width=True):
+                if st.sidebar.button(button_label, key=button_key, use_container_width=False):
                     st.session_state.editing_question = i
                     st.rerun()
 
