@@ -48,6 +48,8 @@ def main():
             }
             .stButton button {
                 padding: 2px 8px !important;
+            }
+            .stButton button div[data-testid="stMarkdownContainer"] {
                 font-size: 14px !important;
             }
         </style>
