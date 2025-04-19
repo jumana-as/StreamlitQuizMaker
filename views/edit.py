@@ -24,7 +24,7 @@ def edit_exam():
         # Add verification progress stats
         total_questions = len(exam["questions"])
         verified_questions = sum(1 for q in exam["questions"] if q.get("verifiedAnswer"))
-        marked_questions = sum(1 for q in exam["questions"] if q.get("isMarked", False))
+        marked_questions = [q["questionNumber"] for q in exam["questions"] if q.get("isMarked", False)]
         progress_percentage = (verified_questions / total_questions) * 100
 
         # Display metrics in three columns
@@ -34,7 +34,12 @@ def edit_exam():
         with col2:
             st.metric("Progress", f"{progress_percentage:.1f}%")
         with col3:
-            st.metric("Marked 🚩", f"{marked_questions}")
+            marked_tooltip = f"Questions: {', '.join(map(str, sorted(marked_questions)))}" if marked_questions else "No marked questions"
+            st.markdown(f"""
+                <div title="{marked_tooltip}">
+                    <div data-testid="stMetricValue">Marked 🚩: {len(marked_questions)}</div>
+                </div>
+            """, unsafe_allow_html=True)
         
         st.progress(progress_percentage / 100)
         st.divider()
