@@ -41,16 +41,32 @@ def show_quiz():
     st.subheader(f"{question['questionNumber']}")
     st.write(question["questionText"])
     
-    selected_option = st.radio(
-        "Select your answer:",
-        options=[f"{opt['optionLetter']}. {opt['optionText']}" for opt in question["options"]],
-        key=f"q_{question['questionNumber']}"
-    )
+    # Detect if multiple choice based on question text
+    is_multiple = any(phrase.lower() in question["questionText"].lower() 
+                     for phrase in ["choose two", "choose three"])
+    
+    # Show options as either checkboxes or radio buttons
+    if is_multiple:
+        selected_letters = []
+        for opt in question["options"]:
+            if st.checkbox(f"{opt['optionLetter']}. {opt['optionText']}", 
+                         key=f"q_{question['questionNumber']}_{opt['optionLetter']}"):
+                selected_letters.append(opt['optionLetter'])
+        question["userAnswer"] = "".join(sorted(selected_letters))
+    else:
+        # Create options list with full text for display
+        options_display = [f"{opt['optionLetter']}. {opt['optionText']}" for opt in question["options"]]
+        selected_index = st.radio(
+            "Select your answer:",
+            options=range(len(options_display)),
+            format_func=lambda i: options_display[i],
+            key=f"q_{question['questionNumber']}"
+        )
+        # Get letter directly from options data
+        question["userAnswer"] = question["options"][selected_index]["optionLetter"]
     
     question["isMarked"] = st.checkbox("Mark for review", 
                                      key=f"mark_{question['questionNumber']}")
-    
-    question["userAnswer"] = selected_option.split(".")[0].strip()
     
     cols = st.columns(2)
     with cols[0]:

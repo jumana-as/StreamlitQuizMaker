@@ -24,7 +24,7 @@ def format_vote_distribution(votes: List[Dict]) -> str:
         
         # Add bold and star for most voted
         if vote.get("is_most_voted", False):
-            vote_text = f"**{vote_text}** ⭐"
+            vote_text = f"**{vote_text}**"
             
         formatted_votes.append(vote_text)
     
