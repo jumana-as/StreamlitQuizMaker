@@ -97,37 +97,14 @@ def edit_exam():
             for opt in question["options"]:
                 st.write(f"{opt['optionLetter']}. {opt['optionText']}")
             
-            # Layout for inputs: Verified Answer | Mark for Review | Notes
-            cols = st.columns([2, 1, 3])
+            # Layout for inputs: (Verified Answer + Notes) | Mark for Review
+            cols = st.columns([4, 1])
             with cols[0]:
                 new_verified = st.text_input(
                     "Verified Answer", 
                     value=question.get("verifiedAnswer", "")
                 )
-            
-            with cols[1]:
-                is_marked = st.checkbox(
-                    "Marked",
-                    value=question.get("isMarked", False),
-                    key=f"edit_mark_{question['questionNumber']}"
-                )
                 
-                if (new_verified != question.get("verifiedAnswer", "") or 
-                    is_marked != question.get("isMarked", False)):
-                    if st.button("Save"):
-                        if update_single_question(
-                            selected_exam[0],
-                            selected_exam[1],
-                            question["questionNumber"],
-                            new_verified,
-                            is_marked
-                        ):
-                            st.success("✓")
-                        else:
-                            st.error("Failed to save")
-            
-            # Notes section moved to third column
-            with cols[2]:
                 current_note = get_note(
                     st.session_state.user_email,
                     selected_exam[0],
@@ -141,18 +118,42 @@ def edit_exam():
                     key=f"note_{question['questionNumber']}"
                 )
                 
-                if note_text != current_note:
-                    if st.button("Save Note"):
-                        if save_note(
-                            st.session_state.user_email,
-                            selected_exam[0],
-                            selected_exam[1],
-                            question["questionNumber"],
-                            note_text
-                        ):
-                            st.success("Note saved!")
-                        else:
-                            st.error("Failed to save note")
+                col1, col2 = st.columns(2)
+                with col1:
+                    if (new_verified != question.get("verifiedAnswer", "") or 
+                        is_marked != question.get("isMarked", False)):
+                        if st.button("Save Answer"):
+                            if update_single_question(
+                                selected_exam[0],
+                                selected_exam[1],
+                                question["questionNumber"],
+                                new_verified,
+                                is_marked
+                            ):
+                                st.success("✓")
+                            else:
+                                st.error("Failed to save")
+                
+                with col2:
+                    if note_text != current_note:
+                        if st.button("Save Note"):
+                            if save_note(
+                                st.session_state.user_email,
+                                selected_exam[0],
+                                selected_exam[1],
+                                question["questionNumber"],
+                                note_text
+                            ):
+                                st.success("Note saved!")
+                            else:
+                                st.error("Failed to save note")
+            
+            with cols[1]:
+                is_marked = st.checkbox(
+                    "Mark for Review",
+                    value=question.get("isMarked", False),
+                    key=f"edit_mark_{question['questionNumber']}"
+                )
 
             with st.expander("Show Details"):
                 show_question_comments(question)
