@@ -119,10 +119,25 @@ def update_single_question(exam_name: str, provider: str, question_number: int,
         print(f"Error updating question: {e}")
         return False
 
+@st.cache_data(ttl=600)
+def get_note(email: str, exam_name: str, provider: str, question_number: int) -> str:
+    try:
+        db = get_database()
+        note = db.notes.find_one({
+            "email": email,
+            "exam": exam_name,
+            "provider": provider,
+            "questionNumber": question_number
+        })
+        return note["text"] if note else ""
+    except Exception as e:
+        print(f"Error getting note: {e}")
+        return ""
+
 def save_note(email: str, exam_name: str, provider: str, question_number: int, note_text: str) -> bool:
     try:
         db = get_database()
-        result = db.notes.update_one(
+        db.notes.update_one(
             {
                 "email": email,
                 "exam": exam_name,
@@ -137,22 +152,12 @@ def save_note(email: str, exam_name: str, provider: str, question_number: int, n
             },
             upsert=True
         )
-        # Clear note cache
+        # Clear the specific note from cache
         get_note.clear()
         return True
     except Exception as e:
         print(f"Error saving note: {e}")
         return False
-
-def get_note(email: str, exam_name: str, provider: str, question_number: int) -> str:
-    db = get_database()
-    note = db.notes.find_one({
-        "email": email,
-        "exam": exam_name,
-        "provider": provider,
-        "questionNumber": question_number
-    })
-    return note["text"] if note else ""
 
 @st.cache_data(ttl=600)
 def get_exam_list():
