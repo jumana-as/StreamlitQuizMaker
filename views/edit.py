@@ -78,10 +78,27 @@ def edit_exam():
         with question_nav:
             st.sidebar.markdown("""
                 <style>
-                    .question-nav { max-height: 400px; overflow-y: auto; padding: 10px; }
-                    .nav-button { width: 100%; text-align: left; background: none; margin: 2px 0; }
-                    .current { background-color: #e6f3ff !important; }
+                    .question-nav { 
+                        max-height: 400px; 
+                        overflow-y: auto; 
+                        padding: 10px; 
+                    }
+                    .nav-grid {
+                        display: grid;
+                        grid-template-columns: repeat(3, 1fr);
+                        gap: 4px;
+                    }
+                    .nav-grid > div {
+                        margin: 0 !important;
+                        padding: 0 !important;
+                    }
+                    .nav-grid button {
+                        width: 100%;
+                        padding: 2px 4px !important;
+                        font-size: 12px !important;
+                    }
                 </style>
+                <div class="nav-grid">
             """, unsafe_allow_html=True)
             
             for i, q in enumerate(questions):
@@ -98,9 +115,13 @@ def edit_exam():
                 if i == st.session_state.editing_question:
                     button_label = f"**{button_label}**"
                 
-                if st.sidebar.button(button_label, key=button_key, use_container_width=False):
+                st.sidebar.markdown(f'<div>', unsafe_allow_html=True)
+                if st.sidebar.button(button_label, key=button_key, use_container_width=True):
                     st.session_state.editing_question = i
                     st.rerun()
+                st.sidebar.markdown('</div>', unsafe_allow_html=True)
+            
+            st.sidebar.markdown("</div>", unsafe_allow_html=True)
 
         question = questions[st.session_state.editing_question]
         st.markdown(f'<div id="{st.session_state.editing_question}"></div>', unsafe_allow_html=True)
