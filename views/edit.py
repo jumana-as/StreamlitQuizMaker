@@ -97,7 +97,8 @@ def edit_exam():
             for opt in question["options"]:
                 st.write(f"{opt['optionLetter']}. {opt['optionText']}")
             
-            cols = st.columns([3, 1, 1])
+            # Layout for inputs: Verified Answer | Mark for Review | Notes
+            cols = st.columns([2, 1, 3])
             with cols[0]:
                 new_verified = st.text_input(
                     "Verified Answer", 
@@ -110,8 +111,7 @@ def edit_exam():
                     value=question.get("isMarked", False),
                     key=f"edit_mark_{question['questionNumber']}"
                 )
-            
-            with cols[2]:
+                
                 if (new_verified != question.get("verifiedAnswer", "") or 
                     is_marked != question.get("isMarked", False)):
                     if st.button("Save"):
@@ -125,13 +125,9 @@ def edit_exam():
                             st.success("✓")
                         else:
                             st.error("Failed to save")
-
-            with st.expander("Show Details"):
-                show_question_comments(question)
-                
-                # Add notes section
-                st.divider()
-                st.subheader("My Notes")
+            
+            # Notes section moved to third column
+            with cols[2]:
                 current_note = get_note(
                     st.session_state.user_email,
                     selected_exam[0],
@@ -140,7 +136,7 @@ def edit_exam():
                 )
                 
                 note_text = st.text_area(
-                    "Add/Edit Note",
+                    "My Notes",
                     value=current_note,
                     key=f"note_{question['questionNumber']}"
                 )
@@ -157,6 +153,9 @@ def edit_exam():
                             st.success("Note saved!")
                         else:
                             st.error("Failed to save note")
+
+            with st.expander("Show Details"):
+                show_question_comments(question)
 
         cols = st.columns(2)
         with cols[0]:
