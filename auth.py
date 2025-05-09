@@ -6,11 +6,11 @@ def init_auth():
 
 def authenticate():
     user = None
-    if not st.experimental_user.is_logged_in:
+    if not st.user.is_logged_in:
         if st.button("Login with Microsoft"):
             st.login("microsoft")
     else:
-        user = st.experimental_user
+        user = st.user
         st.session_state.user_email = user.email
         show_user_info()
         if st.sidebar.button("Log out"):
@@ -25,12 +25,12 @@ def get_initials(name: str) -> str:
     return name[0].upper() if name else '?'
 
 def show_user_info():
-    if st.experimental_user.is_logged_in:
+    if st.user.is_logged_in:
         # Create avatar circle with user initials
-        initials = get_initials(st.experimental_user.name)
+        initials = get_initials(st.user.name)
         user_info = f"""
-        **Email:** {st.experimental_user.email}
-        **Name:** {st.experimental_user.name or 'N/A'}
+        **Email:** {st.user.email}
+        **Name:** {st.user.name or 'N/A'}
         """
         
         # Style the avatar circle and position it in the sidebar
