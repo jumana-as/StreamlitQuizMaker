@@ -17,10 +17,12 @@ def init_session_state():
         st.session_state.start_time = None
     if "editing_question" not in st.session_state:
         st.session_state.editing_question = 0
+    if "needs_rerun" not in st.session_state:
+        st.session_state.needs_rerun = False
 
 def change_mode():
     """Callback when mode changes"""
-    st.rerun()
+    st.session_state.needs_rerun = True
 
 def main():
     init_auth()
@@ -70,6 +72,11 @@ def main():
         key="mode",  # Add key for session state
         on_change=change_mode  # Add change handler
     )
+    
+    # Handle rerun after mode change
+    if st.session_state.needs_rerun:
+        st.session_state.needs_rerun = False
+        st.rerun()
     
     st.sidebar.divider()
     
