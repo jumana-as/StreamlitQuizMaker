@@ -196,3 +196,22 @@ def save_user_progress(email: str, exam_name: str, provider: str, progress_data:
     })
     # Clear the cache
     get_user_exam_attempts.clear()
+
+@st.cache_data(ttl=600)
+def get_all_user_notes(email: str):
+    try:
+        db = get_database()
+        notes = db.notes.find(
+            {"email": email},
+            {
+                "exam": 1,
+                "provider": 1,
+                "questionNumber": 1,
+                "text": 1,
+                "_id": 0
+            }
+        ).sort([("exam", 1), ("questionNumber", 1)])
+        return list(notes)
+    except Exception as e:
+        print(f"Error getting notes: {e}")
+        return []

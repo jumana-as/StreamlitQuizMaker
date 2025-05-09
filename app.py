@@ -4,6 +4,7 @@ from views.practice import practice_exam
 from views.edit import edit_exam
 from views.history import show_history
 from views.create import create_exam
+from views.notes import show_notes
 
 st.set_page_config(page_title="", layout="wide")
 
@@ -57,8 +58,8 @@ def main():
     
     # Create compact horizontal mode buttons
     st.sidebar.markdown("### Mode")
-    mode_cols = st.sidebar.columns([1, 1, 1, 1])
-    modes = ["Practice", "Create", "Edit", "History"]
+    mode_cols = st.sidebar.columns([1, 1, 1, 1, 1])
+    modes = ["Practice", "Create", "Edit", "History", "Notes"]
     
     for i, mode in enumerate(modes):
         if mode_cols[i].button(
@@ -71,13 +72,14 @@ def main():
     
     st.sidebar.divider()
     
-    # Use session state mode instead of radio button value
     if st.session_state.mode == "Create":
         create_exam()
     elif st.session_state.mode == "Edit":
         edit_exam()
     elif st.session_state.mode == "History":
         show_history()
+    elif st.session_state.mode == "Notes":
+        show_notes()
     else:
         practice_exam()
 
