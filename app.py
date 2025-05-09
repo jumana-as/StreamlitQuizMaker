@@ -40,49 +40,33 @@ def main():
     if "mode" not in st.session_state:
         st.session_state.mode = "Practice"
     
-    # Add custom CSS for compact buttons
+    # Add custom CSS for horizontal radio buttons
     st.sidebar.markdown("""
         <style>
-            div[data-testid="column"] {
-                padding: 0 !important;
-                margin: 0 2px !important;
-            }
             div[data-testid="stHorizontalBlock"] {
-                gap: 0.2rem !important;
+                gap: 0 !important;
             }
-            .stButton button {
-                padding: 2px 8px !important;
+            div[data-testid="stMarkdown"] div.row-widget.stRadio > div {
+                flex-direction: row;
+                gap: 0.5rem;
             }
-            .stButton button div[data-testid="stMarkdownContainer"] {
-                font-size: 14px !important;
+            div[data-testid="stMarkdown"] div.row-widget.stRadio > div[role="radiogroup"] > label {
+                padding: 0.2rem 0.5rem;
+                min-width: fit-content;
+                font-size: 14px;
             }
         </style>
     """, unsafe_allow_html=True)
     
-    # Create compact horizontal mode buttons in two rows
-    
-    # First row: 3 buttons
-    row1_cols = st.sidebar.columns(3)
-    for i, mode in enumerate(modes[:3]):
-        if row1_cols[i].button(
-            mode,
-            type="primary" if st.session_state.mode == mode else "secondary",
-            use_container_width=True
-        ):
-            st.session_state.mode = mode
-            st.rerun()
-    
-    # Second row: 2 buttons centered
-    _, row2_cols, _ = st.sidebar.columns([1, 2, 1])  # Use 1:2:1 ratio for centering
-    for i, mode in enumerate(modes[3:], start=0):
-        if row2_cols.button(
-            mode,
-            type="primary" if st.session_state.mode == mode else "secondary",
-            use_container_width=True,
-            key=f"mode_row2_{i}"  # Add unique key for second row buttons
-        ):
-            st.session_state.mode = mode
-            st.rerun()
+    # Replace buttons with horizontal radio
+    st.sidebar.markdown("### Mode")
+    st.session_state.mode = st.sidebar.radio(
+        "",  # Empty label since we have the header above
+        modes,
+        horizontal=True,
+        label_visibility="collapsed",
+        index=modes.index(st.session_state.mode)
+    )
     
     st.sidebar.divider()
     
