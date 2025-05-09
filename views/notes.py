@@ -9,6 +9,8 @@ def show_notes():
         st.info("No notes found")
         return
     
+    st.caption(f"Total notes: {len(notes)}")
+    
     # Group notes by exam
     notes_by_exam = {}
     for note in notes:
@@ -17,28 +19,20 @@ def show_notes():
             notes_by_exam[key] = []
         notes_by_exam[key].append(note)
     
-    # Add exam filter
-    exam_options = [(None, None)] + list(notes_by_exam.keys())
+    # Add exam filter with None removed from options
+    exam_options = [None] + list(notes_by_exam.keys())
     selected_exam = st.selectbox(
-        "Filter by Exam",
+        "Select an exam to view notes",
         options=exam_options,
-        format_func=lambda x: "All Exams" if x[0] is None else f"{x[0]} ({x[1]})"
+        format_func=lambda x: "Select an exam..." if x is None else f"{x[0]} ({x[1]})"
     )
     
-    st.divider()
-    
-    # Display filtered notes
-    if selected_exam[0] is None:
-        # Show all notes
-        for (exam_name, provider), exam_notes in notes_by_exam.items():
-            st.subheader(f"{exam_name} ({provider})")
-            for note in sorted(exam_notes, key=lambda x: x["questionNumber"]):
-                st.markdown(f"**Question {note['questionNumber']}**")
-                st.markdown(note["text"])
-                st.divider()
-    else:
-        # Show notes for selected exam
+    # Only show notes if an exam is selected
+    if selected_exam:
         exam_notes = notes_by_exam[selected_exam]
+        st.caption(f"Notes in this exam: {len(exam_notes)}")
+        st.divider()
         for note in sorted(exam_notes, key=lambda x: x["questionNumber"]):
+            st.markdown(f"**{note['questionNumber']}**")
             st.markdown(note["text"])
             st.divider()
