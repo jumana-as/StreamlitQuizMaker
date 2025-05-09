@@ -18,6 +18,10 @@ def init_session_state():
     if "editing_question" not in st.session_state:
         st.session_state.editing_question = 0
 
+def change_mode():
+    """Callback when mode changes"""
+    st.rerun()
+
 def main():
     init_auth()
     init_session_state()
@@ -58,33 +62,28 @@ def main():
         </style>
     """, unsafe_allow_html=True)
     
-    # Remove direct assignment to session_state and use radio value directly
     mode = st.sidebar.radio(
         "",  # Empty label since we have the header above
         modes,
         horizontal=True,
         label_visibility="collapsed",
-        index=modes.index(st.session_state.mode)
+        key="mode",  # Add key for session state
+        on_change=change_mode  # Add change handler
     )
     
     st.sidebar.divider()
     
-    # Use mode value directly instead of session_state
+    # Simple mode routing without manual session state updates
     if mode == "Create":
         create_exam()
-        st.session_state.mode = mode  # Update session state after rendering
     elif mode == "Edit":
         edit_exam()
-        st.session_state.mode = mode
     elif mode == "History":
         show_history()
-        st.session_state.mode = mode
     elif mode == "Notes":
         show_notes()
-        st.session_state.mode = mode
     else:
         practice_exam()
-        st.session_state.mode = mode
 
 if __name__ == "__main__":
     main()
