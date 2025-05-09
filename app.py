@@ -65,7 +65,7 @@ def main():
     """, unsafe_allow_html=True)
     
     mode = st.sidebar.radio(
-        "",  # Empty label since we have the header above
+        "Navigation Mode",  # Add descriptive label for accessibility
         modes,
         horizontal=True,
         label_visibility="collapsed",
