@@ -58,9 +58,8 @@ def main():
         </style>
     """, unsafe_allow_html=True)
     
-    # Replace buttons with horizontal radio
-    st.sidebar.markdown("### Mode")
-    st.session_state.mode = st.sidebar.radio(
+    # Remove direct assignment to session_state and use radio value directly
+    mode = st.sidebar.radio(
         "",  # Empty label since we have the header above
         modes,
         horizontal=True,
@@ -70,16 +69,22 @@ def main():
     
     st.sidebar.divider()
     
-    if st.session_state.mode == "Create":
+    # Use mode value directly instead of session_state
+    if mode == "Create":
         create_exam()
-    elif st.session_state.mode == "Edit":
+        st.session_state.mode = mode  # Update session state after rendering
+    elif mode == "Edit":
         edit_exam()
-    elif st.session_state.mode == "History":
+        st.session_state.mode = mode
+    elif mode == "History":
         show_history()
-    elif st.session_state.mode == "Notes":
+        st.session_state.mode = mode
+    elif mode == "Notes":
         show_notes()
+        st.session_state.mode = mode
     else:
         practice_exam()
+        st.session_state.mode = mode
 
 if __name__ == "__main__":
     main()
