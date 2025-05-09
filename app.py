@@ -22,6 +22,9 @@ def main():
     init_auth()
     init_session_state()
 
+    # Define available modes
+    modes = ["Practice", "Create", "Edit", "History", "Notes"]
+
     user = authenticate()
     if not user:
         st.error("Please login with Microsoft Account")
