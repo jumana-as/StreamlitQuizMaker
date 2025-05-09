@@ -56,16 +56,27 @@ def main():
         </style>
     """, unsafe_allow_html=True)
     
-    # Create compact horizontal mode buttons
-    st.sidebar.markdown("### Mode")
-    mode_cols = st.sidebar.columns([1, 1, 1, 1, 1])
-    modes = ["Practice", "Create", "Edit", "History", "Notes"]
+    # Create compact horizontal mode buttons in two rows
     
-    for i, mode in enumerate(modes):
-        if mode_cols[i].button(
+    # First row: 3 buttons
+    row1_cols = st.sidebar.columns(3)
+    for i, mode in enumerate(modes[:3]):
+        if row1_cols[i].button(
             mode,
             type="primary" if st.session_state.mode == mode else "secondary",
             use_container_width=True
+        ):
+            st.session_state.mode = mode
+            st.rerun()
+    
+    # Second row: 2 buttons centered
+    _, row2_cols, _ = st.sidebar.columns([1, 2, 1])  # Use 1:2:1 ratio for centering
+    for i, mode in enumerate(modes[3:], start=0):
+        if row2_cols.button(
+            mode,
+            type="primary" if st.session_state.mode == mode else "secondary",
+            use_container_width=True,
+            key=f"mode_row2_{i}"  # Add unique key for second row buttons
         ):
             st.session_state.mode = mode
             st.rerun()
