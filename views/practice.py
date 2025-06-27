@@ -39,7 +39,7 @@ def show_quiz():
         return
 
     st.subheader(f"{question['questionNumber']}")
-    st.write(question["questionText"])
+    st.markdown(question["questionText"], unsafe_allow_html=True)
     
     # Detect if multiple choice based on question text
     is_multiple = any(phrase.lower() in question["questionText"].lower() 

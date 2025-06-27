@@ -115,7 +115,7 @@ def edit_exam():
         st.markdown(f'<div id="{st.session_state.editing_question}"></div>', unsafe_allow_html=True)
         with st.container():
             st.markdown(f"### {question['questionNumber']}")
-            st.write(question['questionText'])
+            st.markdown(question['questionText'], unsafe_allow_html=True)
             
             st.write("Options:")
             for opt in question["options"]:

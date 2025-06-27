@@ -39,7 +39,8 @@ def show_question_comments(question: Dict):
         content = comment['commentContent'].replace('\n', ' ').replace('\t', ' ').strip()
         selected = f" [{comment.get('commentSelectedAnswer', '')}]" if comment.get('commentSelectedAnswer') else ""
         st.markdown(f"{head}{selected}: {content}")
-    st.write(f"Suggested Answer: {question['suggestedAnswer']}")
+    
+    st.markdown(f"Suggested Answer: {question['suggestedAnswer']}", unsafe_allow_html=True)
     
     # Format and display vote distribution
     vote_dist = format_vote_distribution(question["voteDistribution"])
