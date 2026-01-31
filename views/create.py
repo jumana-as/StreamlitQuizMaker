@@ -57,10 +57,10 @@ def create_exam():
                     img_bytes = img.read()
                     encrypted = encrypt_image(img_bytes, key)
                     encrypted_files[img.name] = encrypted
-                # Get access token from session (assume you have it from login)
-                access_token = st.session_state.get("access_token")
+                # Get access token from Streamlit authentication
+                access_token = st.session_state.get("access_token") or (st.user.access_token if st.user.is_logged_in else None)
                 if not access_token:
-                    st.error("No access token found. Please ensure you are logged in with Microsoft.")
+                    st.error("No access token found. Please ensure you are logged in with Microsoft and have granted permission to access OneDrive.")
                 elif not folder_name:
                     st.error("Please enter a folder name.")
                 else:
