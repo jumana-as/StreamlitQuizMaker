@@ -51,7 +51,7 @@ def create_exam():
             folder_name = st.text_input("Enter folder name for OneDrive (must match local folder name)")
             if st.button("Encrypt and Upload Images to OneDrive"):
                 # Load AES key from secrets
-                key = bytes.fromhex(st.secrets["aes_key"])
+                key = bytes.fromhex(st.secrets["AES_KEY"])
                 encrypted_files = {}
                 for img in image_files:
                     img_bytes = img.read()
