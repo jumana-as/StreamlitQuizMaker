@@ -28,6 +28,7 @@ def upload_to_onedrive(folder_name, files, access_token):
         upload_resp.raise_for_status()
 
 def create_exam():
+    st.json(st.session_state)
     st.header("Create New Exam")
     uploaded_file = st.file_uploader("Upload JSON file", type="json")
     if uploaded_file:
