@@ -5,12 +5,38 @@ import os
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 import secrets
 import requests
+import msal
 
 def encrypt_image(image_bytes, key):
     nonce = secrets.token_bytes(12)
     aesgcm = AESGCM(key)
     encrypted = aesgcm.encrypt(nonce, image_bytes, None)
     return nonce + encrypted  # prepend nonce for later decryption
+
+def get_msal_access_token():
+    """Get OneDrive access token using MSAL with cached credentials"""
+    CLIENT_ID = st.secrets.get("MICROSOFT_CLIENT_ID")
+    TENANT_ID = st.secrets.get("MICROSOFT_TENANT_ID", "common")
+    SCOPES = ["Files.ReadWrite"]
+    
+    if not CLIENT_ID:
+        raise ValueError("MICROSOFT_CLIENT_ID not configured in secrets")
+    
+    authority = f"https://login.microsoftonline.com/{TENANT_ID}"
+    app = msal.PublicClientApplication(CLIENT_ID, authority=authority)
+    
+    # Try to use cached token first
+    accounts = app.get_accounts()
+    if accounts:
+        result = app.acquire_token_silent(SCOPES, account=accounts[0])
+        if "access_token" in result:
+            return result["access_token"]
+    
+    # If no cached token, user needs to authenticate
+    raise Exception(
+        "No cached authentication available. Please ensure you've logged in with Microsoft "
+        "and the MSAL cache is accessible. If this is your first time, logout and login again."
+    )
 
 def upload_to_onedrive(folder_name, files, access_token):
     # Create folder in OneDrive
@@ -28,7 +54,6 @@ def upload_to_onedrive(folder_name, files, access_token):
         upload_resp.raise_for_status()
 
 def create_exam():
-    st.json(st.session_state)
     st.header("Create New Exam")
     uploaded_file = st.file_uploader("Upload JSON file", type="json")
     if uploaded_file:
@@ -58,16 +83,17 @@ def create_exam():
                     img_bytes = img.read()
                     encrypted = encrypt_image(img_bytes, key)
                     encrypted_files[img.name] = encrypted
-                # Get access token from Streamlit authentication
-                access_token = (st.user.tokens["access"] if st.user.is_logged_in else None)
-                if not access_token:
-                    st.error("No access token found. Please ensure you are logged in with Microsoft and have granted permission to access OneDrive.")
-                elif not folder_name:
+                
+                if not folder_name:
                     st.error("Please enter a folder name.")
                 else:
                     try:
+                        # Get access token using MSAL
+                        access_token = get_msal_access_token()
                         upload_to_onedrive(folder_name, encrypted_files, access_token)
                         st.success("All images encrypted and uploaded to OneDrive successfully!")
+                    except ValueError as e:
+                        st.error(f"Configuration error: {e}")
                     except Exception as e:
                         st.error(f"Upload failed: {e}")
 
