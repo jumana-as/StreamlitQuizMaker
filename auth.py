@@ -1,19 +1,9 @@
 import streamlit as st
-import msal
-import json
+
 
 def init_auth():
     if 'user_email' not in st.session_state:
         st.session_state.user_email = None
-    if 'msal_app' not in st.session_state:
-        CLIENT_ID = st.secrets.get("MICROSOFT_CLIENT_ID")
-        TENANT_ID = st.secrets.get("MICROSOFT_TENANT_ID", "common")
-        if CLIENT_ID:
-            authority = f"https://login.microsoftonline.com/{TENANT_ID}"
-            st.session_state.msal_app = msal.PublicClientApplication(
-                CLIENT_ID, 
-                authority=authority
-            )
 
 def authenticate():
     user = None
